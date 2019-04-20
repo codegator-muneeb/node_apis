@@ -5,10 +5,10 @@ const PWD = "zw@pune";
 const PORT = 1883;
 const FRAME_SIZE = 2;
 const QOS = 2;
-const DBHOST = 'localhost';
+const DBHOST = 'syncme-db-do-user-5083956-0.db.ondigitalocean.com';
 const DB = 'entry_point_db';
-const DBPWD = 'muneeb6696';
-const DBPORT = 5432;
+const DBPWD = 'x00suokhtm4xo568';
+const DBPORT = 25060;
 const TIMEOUT = 10000;
 
 module.exports = {

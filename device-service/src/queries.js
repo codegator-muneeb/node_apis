@@ -2,7 +2,7 @@ const Config = require('./config');
 
 const Pool = require('pg').Pool
 const pool = new Pool({
-  user: 'postgres',
+  user: 'doadmin',
   host: Config.HOST,
   database: Config.DB,
   password: Config.PWD,

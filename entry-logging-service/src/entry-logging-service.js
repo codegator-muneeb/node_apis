@@ -4,7 +4,7 @@ var topics = require('./TopicList');
 const Pool = require('pg').Pool;
 
 const pool = new Pool({
-  user: 'postgres',
+  user: 'doadmin',
   host: config.DBHOST,
   database: config.DB,
   password: config.DBPWD,

@@ -6,7 +6,7 @@ let middleware = require('./verify');
 const fs = require('fs');
 const Pool = require('pg').Pool
 const pool = new Pool({
-    user: 'postgres',
+    user: 'doadmin',
     host: config.HOST,
     database: config.DB,
     password: config.PWD,
