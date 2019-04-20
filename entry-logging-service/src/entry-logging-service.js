@@ -88,7 +88,7 @@ function getEmpId(rfid, callbck){
 }*/
 
 function makeDatabaseEntry(cmd, empid, timestamp){
-  var schema = empid.substring(0,5);
+  var schema = empid.substring(0,7);
   var query = `INSERT INTO ${schema}.ep_entryLogs values(DEFAULT, $1, $2, $3)`
   pool.query(query, [empid, cmd, timestamp], (error, results) => {
     if (error) {
