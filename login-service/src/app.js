@@ -19,7 +19,7 @@ var signOptions = {
 };
 
 var privateKEY = fs.readFileSync('./src/private.key', 'utf8');
-cd
+
 /* status = 0, internal error
 ** status = 1, not found
 ** status = 2, password not matching
