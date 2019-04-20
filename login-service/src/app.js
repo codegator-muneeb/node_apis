@@ -65,6 +65,7 @@ class HandlerGenerator {
 
             pool.query(query_cCode, [email], (error, results) => {
                 if (error) {
+                    console.log(error)
                     return rej("")
                 } else {
                     if (results.rowCount === 0) {
@@ -86,6 +87,7 @@ class HandlerGenerator {
 
         HandlerGenerator.getCompanyCode(email)
             .then(companyCode => {
+                console.log(companyCode)
                 if (username && password && companyCode !== "") {
                     HandlerGenerator.checkCredentials(username, companyCode, password)
                         .then(result => {
@@ -109,6 +111,7 @@ class HandlerGenerator {
                 }
             })
             .catch(error => {
+                console.log(error);
                 console.log("[LOGIN SERVICE] Error occured for email: " + email);
                 res.sendStatus(500)
             })
@@ -124,6 +127,8 @@ class HandlerGenerator {
 
 // Starting point of the server
 function main() {
+    let https = require('https');
+    let fs = require('fs')
     let app = express(); // Export app for other routes to use
     let handlers = new HandlerGenerator();
     const port = config.API_PORT;
@@ -131,6 +136,13 @@ function main() {
         extended: true
     }));
     app.use(bodyParser.json());
+
+    var key = fs.readFileSync('../ssl/syncme.key', 'utf8');
+    var cert = fs.readFileSync('../ssl/syncme.crt', 'utf8');
+    var options = {
+        key: key,
+        cert: cert
+    };
 
     var allowCrossDomain = function (req, res, next) {
         res.header('Access-Control-Allow-Origin', "*");
@@ -143,7 +155,12 @@ function main() {
     // Routes & Handlers
     app.post('/login', handlers.login);
     app.get('/', middleware.checkToken, handlers.index);
-    app.listen(port, () => console.log(`Server is listening on port: ${port}`));
+    //app.listen(port, () => console.log(`Server is listening on port: ${port}`));
+    var server = https.createServer(options, app);
+
+    server.listen(port, () => {
+        console.log(`App is running on port ${port}`);
+    });
 }
 
 main();

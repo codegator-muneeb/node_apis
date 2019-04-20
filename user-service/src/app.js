@@ -4,6 +4,8 @@ const config = require("./config")
 const app = express();
 const port = config.API_PORT;
 const db = require('./queries')
+const https = require('https');
+const fs = require('fs')
 
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true, }));
@@ -16,7 +18,20 @@ var allowCrossDomain = function(req, res, next) {
 }
 app.use(allowCrossDomain);
 
-app.listen(port, () => {
+var key = fs.readFileSync('../ssl/syncme.key', 'utf8');
+var cert = fs.readFileSync('../ssl/syncme.crt', 'utf8');
+var options = {
+    key: key,
+    cert: cert
+};
+
+// app.listen(port, () => {
+//     console.log(`App is running on port ${port}`);
+// });
+
+var server = https.createServer(options, app);
+
+server.listen(port, () => {
     console.log(`App is running on port ${port}`);
 });
 
