@@ -7,6 +7,7 @@ const pool = new Pool({
   database: Config.DB,
   password: Config.PWD,
   port: Config.PORT,
+  ssl: true
 })
 
 const getRegDevices = (request, response) => {

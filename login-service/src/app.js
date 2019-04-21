@@ -11,6 +11,7 @@ const pool = new Pool({
     database: config.DB,
     password: config.PWD,
     port: config.PORT,
+    ssl: true
 })
 
 var signOptions = {

@@ -9,6 +9,7 @@ const pool = new Pool({
   database: config.DB,
   password: config.DBPWD,
   port: config.DBPORT,
+  ssl: true
 })
 
 var options = {
