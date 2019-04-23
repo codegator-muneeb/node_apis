@@ -39,6 +39,7 @@ app.get('/devices/get/reg/:companyCode', db.getRegDevices)
 app.get('/devices/get/unreg/:companyCode', db.getUnRegDevices)
 app.post('/devices/add', db.addNewDevice)
 app.get('/devices/register/:deviceId', db.registerDevice)
+app.post('/devices/delete', db.deleteDeviceData)
 
 app.get('/', (request, response) => {
     response.json({ info: 'Zerowav Device Service Running' });

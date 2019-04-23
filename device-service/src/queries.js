@@ -83,9 +83,63 @@ const registerDevice = (request, response) => {
   })
 }
 
+const deleteDeviceData = (request, response) => {
+  const { deviceId, companyCode } = request.body;
+
+  var query = `DELETE FROM ep_deviceDetails where deviceId = $1`;
+
+  pool.query(query, [deviceId], (error, results) => {
+    if (error) {
+      console.log(error);
+      response.sendStatus(500)
+    } else {
+      deleteDevCompanyRel(deviceId)
+        .then((result) => {
+          deleteDevEmpRel(companyCode, deviceId)
+            .then((result) => {
+              response.sendStatus(200)
+            },
+              (err) => response.sendStatus(500))
+        },
+          (err) => response.sendStatus(500))
+    }
+  })
+}
+
+const deleteDevCompanyRel = (deviceId) => {
+  return new Promise((res, rej) => {
+    var query = `DELETE FROM ep_devCompanyRel where deviceId = $1`;
+
+    pool.query(query, [deviceId], (error, results) => {
+      if (error) {
+        console.log(error);
+        return rej("Failed")
+      } else {
+        res("Success")
+      }
+    })
+  })
+}
+
+const deleteDevEmpRel = (companyCode, deviceId) => {
+  return new Promise((res, rej) => {
+    var query = `DELETE FROM ${companyCode}.ep_empDeviceRel where device_id = $1`;
+
+    pool.query(query, [deviceId], (error, results) => {
+      if (error) {
+        console.log(error);
+        return rej("Failed")
+      } else {
+        res("Success")
+      }
+    })
+  })
+}
+
 module.exports = {
   getRegDevices,
   addNewDevice,
   registerDevice,
-  getUnRegDevices
+  getUnRegDevices,
+  deleteDeviceData
 }
