@@ -327,5 +327,6 @@ module.exports = {
     getUnits,
     getDepts,
     getPermissions,
-    getTeamMembers
+    getTeamMembers,
+    getTeams
 }
