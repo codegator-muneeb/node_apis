@@ -53,9 +53,9 @@ client.on('message', function(topic, message, packet){
   try {
     messageString = hexToString(message);
     var payload = JSON.parse(messageString);
-    console.log(payload);
     var cmd = payload.CMD;
     if(cmd === "EMP_CHECKIN" || cmd === "EMP_CHECKOUT"){
+      console.log("[Entry Logging Service]: Payload received: " + payload);
       var empid = payload.EMPID;
       var time = payload.TIME;
       makeDatabaseEntry(cmd, empid, time);
@@ -63,37 +63,15 @@ client.on('message', function(topic, message, packet){
   } catch(error){
     console.log("Error in json received:" + error);
   }
-  // console.log("Received");
-  // // var publishingTopic = topic.substring(0,29) + "/ServerToDevice";
-  // // client.publish(publishingTopic, empid)
+
 });
-
-/*function getCompanyAlias(rfid, callbck){
-   var query = 'SELECT alias from ep_empLookup where rfid = $1';
-   pool.query(query, [rfid], (error, results) => {
-    if (error) {
-      throw error
-    }
-    return callbck(results.rows[0].alias)
-  })
-}
-
-function getEmpId(rfid, callbck){
-  var query = 'SELECT emp_id from ep_empLookup where rfid = $1';
-   pool.query(query, [rfid], (error, results) => {
-    if (error) {
-      console.log(error);
-    }
-    return callbck(results.rows[0].emp_id)
-  })
-}*/
 
 function makeDatabaseEntry(cmd, empid, timestamp){
   var schema = empid.substring(0,7);
   var query = `INSERT INTO ${schema}.ep_entryLogs values(DEFAULT, $1, $2, $3)`
   pool.query(query, [empid, cmd, timestamp], (error, results) => {
     if (error) {
-      console.log(error);
+      console.log("Error for " + empid + " " + error);
     }
     console.log("Entry Successful for EMP: " + empid);
   });
