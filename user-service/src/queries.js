@@ -127,19 +127,59 @@ const deleteUsers = (request, response) => {
         if (error) {
             response.sendStatus(500);
         } else {
+
             deleteUserDeviceRel(userListString, companyCode)
                 .then(result => {
-                    //console.log(result);
-                    response.sendStatus(200)
+
+                    deleteMasterLogin(userListString, companyCode)
+                        .then(result1 => {
+
+                            deleteLoginTable(userListString, companyCode)
+                                .then(result2 => {
+                                    response.sendStatus(200)
+                                },
+                                    (err2) => response.sendStatus(500))
+
+                        },
+                            (err1) => response.sendStatus(500))
+
                 },
                     err => {
-                        //console.log(err);
                         response.sendStatus(500)
                     }
                 )
         }
     })
 };
+
+function deleteLoginTable(userListString, companyCode) {
+    return new Promise((res, rej) => {
+        var query = `DELETE FROM ${companyCode}.ep_login where emp_id IN (${userListString})`
+
+        pool.query(query, (error, results) => {
+            if (error) {
+                return rej("Failed");
+            } else {
+                return res("Passed");
+            }
+        })
+    })
+}
+
+function deleteMasterLogin(userListString, companyCode) {
+    return new Promise((res, rej) => {
+        var query = `DELETE FROM ep_masterLogin WHERE email in (SELECT email FROM ${companyCode}.ep_login where emp_id IN (${userListString}))`
+
+        pool.query(query, (error, results) => {
+            if (error) {
+                console.log(error);
+                return rej("Failed");
+            } else {
+                return res("Passed");
+            }
+        })
+    })
+}
 
 function deleteUserDeviceRel(userListString, companyCode) {
     return new Promise((res, rej) => {

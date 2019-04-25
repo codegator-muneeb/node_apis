@@ -30,8 +30,8 @@ const AddUser = (request, response) => {
         var rfidString = "";
         var fingerString = "";
         for (var user of userDetails) {
-            rfidString = user.rfid !== "" ? rfidString + `${user.rfid}-1-${user.empid},` : rfidString;
-            fingerString = user.fingerid !== "" ? fingerString + `${user.fingerid}-1-${user.empid},` : fingerString;
+            rfidString = user.rfid !== "" ? rfidString + `${user.rfid}-11-${user.empid},` : rfidString;
+            fingerString = user.fingerid !== "" ? fingerString + `${user.fingerid}-11-${user.empid},` : fingerString;
         }
         var msgToPublish = `[EMP_ADD]RFID=${rfidString};`;
         msgToPublish = fingerString !== "" ? msgToPublish + `FINGER=${fingerString};` : msgToPublish;
