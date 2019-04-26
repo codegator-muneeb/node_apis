@@ -34,6 +34,7 @@ class HandlerGenerator {
             pool.query(query, [username], (error, results) => {
                 if (error) {
                     console.error(error)
+                    
                     return rej({ status: 0 });
                 } else {
                     if (results.rowCount === 0) {
@@ -49,15 +50,16 @@ class HandlerGenerator {
                                 empid: dataFromDb.emp_id,
                                 role: dataFromDb.role
                             }
+                            
                             return res({ status: 3, data: dataToReturn })
                         }
                         else {
+                            
                             return rej({ status: 2 })
                         }
                     }
                 }
             })
-            .finally(() => pool.end())
         })
     }
 
@@ -68,16 +70,18 @@ class HandlerGenerator {
             pool.query(query_cCode, [email], (error, results) => {
                 if (error) {
                     console.log(error)
+                    
                     return rej("")
                 } else {
                     if (results.rowCount === 0) {
+                        
                         return rej("")
                     } else {
+                        
                         return res(results.rows[0].company_code)
                     }
                 }
             })
-            .finally(() => pool.end())
         })
     }
 
@@ -118,6 +122,8 @@ class HandlerGenerator {
                 console.log("[LOGIN SERVICE] Error occured for email: " + email);
                 res.sendStatus(500)
             })
+            //
+            
     }
 
     index(req, res) {

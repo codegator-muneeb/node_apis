@@ -82,7 +82,7 @@ function addToLoginTable(empid, email, dob, companyCode) {
                 return res("Passed");
             }
         })
-        .finally(() => pool.end())
+        
     })
 }
 
@@ -98,7 +98,7 @@ function addToMasterLogin(email, companyCode) {
                 return res("Passed");
             }
         })
-        .finally(() => pool.end())
+        
     })
 }
 
@@ -112,7 +112,7 @@ function addUserDeviceRel(query) {
                 return res("Passed");
             }
         })
-        .finally(() => pool.end())
+        
     });
 }
 
@@ -153,7 +153,7 @@ const deleteUsers = (request, response) => {
                 )
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 function deleteLoginTable(userListString, companyCode) {
@@ -167,7 +167,7 @@ function deleteLoginTable(userListString, companyCode) {
                 return res("Passed");
             }
         })
-        .finally(() => pool.end())
+        
     })
 }
 
@@ -183,7 +183,7 @@ function deleteMasterLogin(userListString, companyCode) {
                 return res("Passed");
             }
         })
-        .finally(() => pool.end())
+        
     })
 }
 
@@ -198,7 +198,7 @@ function deleteUserDeviceRel(userListString, companyCode) {
                 return res("Passed");
             }
         })
-        .finally(() => pool.end())
+        
     });
 }
 
@@ -212,7 +212,7 @@ const updateUser = (request, response) => {
             response.sendStatus(200);
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 const enableUser = (request, response) => {
@@ -225,7 +225,7 @@ const enableUser = (request, response) => {
             response.sendStatus(200);
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 const getUserDeviceList = (request, response) => {
@@ -241,7 +241,7 @@ const getUserDeviceList = (request, response) => {
             response.json(results.rows);
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 const getAllUsers = (request, response) => {
@@ -256,7 +256,7 @@ const getAllUsers = (request, response) => {
             response.json(results.rows);
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 const getEmpTypes = (request, response) => {
@@ -270,7 +270,7 @@ const getEmpTypes = (request, response) => {
             response.json(results.rows);
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 const getAccounts = (request, response) => {
@@ -284,7 +284,7 @@ const getAccounts = (request, response) => {
             response.json(results.rows);
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 const getDivisions = (request, response) => {
@@ -298,7 +298,7 @@ const getDivisions = (request, response) => {
             response.json(results.rows);
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 const getUnits = (request, response) => {
@@ -312,7 +312,7 @@ const getUnits = (request, response) => {
             response.json(results.rows);
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 const getDepts = (request, response) => {
@@ -326,7 +326,7 @@ const getDepts = (request, response) => {
             response.json(results.rows);
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 const getPermissions = (request, response) => {
@@ -340,7 +340,7 @@ const getPermissions = (request, response) => {
             response.json(results.rows);
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 const getTeams = (request, response) => {
@@ -354,7 +354,7 @@ const getTeams = (request, response) => {
             response.json(results.rows);
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 const getTeamMembers = (request, response) => {
@@ -370,7 +370,7 @@ const getTeamMembers = (request, response) => {
             response.json(results.rows);
         }
     })
-    .finally(() => pool.end())
+    
 };
 
 module.exports = {
