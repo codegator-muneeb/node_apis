@@ -27,6 +27,7 @@ const getLeaveBalance = (request, response) => {
       response.json(results.rows);
     }
   })
+  .finally(() => pool.end())
 };
 
 const getHolidayList = (request, response) => {
@@ -41,6 +42,7 @@ const getHolidayList = (request, response) => {
       response.json(results.rows)
     }
   })
+  .finally(() => pool.end())
 };
 
 const getLeaveOverview = (request, response) => {
@@ -58,6 +60,7 @@ const getLeaveOverview = (request, response) => {
       response.json(results.rows)
     }
   })
+  .finally(() => pool.end())
 }
 
 /* 0 - Pending | 1 - Approved | -1 - Rejected 
@@ -85,6 +88,7 @@ const getLeaveRequests = (request, response) => {
       response.send(results.rows)
     }
   })
+  .finally(() => pool.end())
 }
 
 const approveRequest = (request, response) => {
@@ -112,6 +116,7 @@ const approveRequest = (request, response) => {
         })
     }
   })
+  .finally(() => pool.end())
 }
 
 const rejectRequest = (request, response) => {
@@ -145,6 +150,7 @@ const rejectRequest = (request, response) => {
               })
           }
         })
+        .finally(() => pool.end())
       } else {
         pool.query(query, [id], (error, results) => {
           if (error) {
@@ -154,6 +160,7 @@ const rejectRequest = (request, response) => {
             response.sendStatus(200);
           }
         })
+        .finally(() => pool.end())
       }
     })
     .catch(error => {
@@ -179,6 +186,7 @@ const submitRequest = (request, response) => {
       response.sendStatus(200);
     }
   })
+  .finally(() => pool.end())
 }
 
 /* Utility Function
@@ -200,6 +208,7 @@ const getLeaveStatus = (companyCode, id) => {
         }
       }
     })
+    .finally(() => pool.end())
   })
 }
 
@@ -214,6 +223,7 @@ const getAbbreviations = (request, response) => {
       response.json(results.rows)
     }
   })
+  .finally(() => pool.end())
 }
 
 const getLegend = (request, response) => {
@@ -227,6 +237,7 @@ const getLegend = (request, response) => {
       response.json(results.rows)
     }
   })
+  .finally(() => pool.end())
 }
 
 /* Utility Function
@@ -245,6 +256,7 @@ const updateLeaveBalance = (empid, typeid, days, companyCode) => {
       }
     })
   })
+  .finally(() => pool.end())
 }
 
 const getDayStatus = (request, response) => {
@@ -316,12 +328,15 @@ const getDayStatus = (request, response) => {
                   }
                 }
               })
+              .finally(() => pool.end())
             }
           }
         })
+        .finally(() => pool.end())
       }
     }
   })
+  .finally(() => pool.end())
 }
  
 const getDayInfo = (request, response) => {
@@ -386,12 +401,15 @@ const getDayInfo = (request, response) => {
                   }
                 }
               })
+              .finally(() => pool.end())
             }
           }
         })
+        .finally(() => pool.end())
       }
     }
   })
+  .finally(() => pool.end())
 }
 
   // console.log("exited");

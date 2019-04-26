@@ -22,6 +22,7 @@ const getRegDevices = (request, response) => {
     }
     response.json(results.rows)
   })
+  .finally(() => pool.end())
 };
 
 const getUnRegDevices = (request, response) => {
@@ -35,6 +36,7 @@ const getUnRegDevices = (request, response) => {
     }
     response.json(results.rows)
   })
+  .finally(() => pool.end())
 };
 
 const addNewDevice = (request, response) => {
@@ -52,6 +54,7 @@ const addNewDevice = (request, response) => {
           err => response.sendStatus(500))
     }
   })
+  .finally(() => pool.end())
 }
 
 const addInDevCompanyRel = (deviceId, companyCode) => {
@@ -64,6 +67,7 @@ const addInDevCompanyRel = (deviceId, companyCode) => {
         return res("Passed")
       }
     })
+    .finally(() => pool.end())
   })
 
 }
@@ -81,6 +85,7 @@ const registerDevice = (request, response) => {
       response.sendStatus(200)
     }
   })
+  .finally(() => pool.end())
 }
 
 const deleteDeviceData = (request, response) => {
@@ -104,6 +109,7 @@ const deleteDeviceData = (request, response) => {
           (err) => response.sendStatus(500))
     }
   })
+  .finally(() => pool.end())
 }
 
 const deleteDevCompanyRel = (deviceId) => {
@@ -118,6 +124,7 @@ const deleteDevCompanyRel = (deviceId) => {
         res("Success")
       }
     })
+    .finally(() => pool.end())
   })
 }
 
@@ -133,6 +140,7 @@ const deleteDevEmpRel = (companyCode, deviceId) => {
         res("Success")
       }
     })
+    .finally(() => pool.end())
   })
 }
 

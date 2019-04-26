@@ -57,6 +57,7 @@ class HandlerGenerator {
                     }
                 }
             })
+            .finally(() => pool.end())
         })
     }
 
@@ -76,6 +77,7 @@ class HandlerGenerator {
                     }
                 }
             })
+            .finally(() => pool.end())
         })
     }
 

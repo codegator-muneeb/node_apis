@@ -74,6 +74,7 @@ function makeDatabaseEntry(cmd, empid, timestamp){
       console.log("Error for " + empid + " " + error);
     }
     console.log("Entry Successful for EMP: " + empid);
-  });
+  })
+  .finally(() => pool.end())
 };
 
