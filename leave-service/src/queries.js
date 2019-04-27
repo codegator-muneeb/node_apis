@@ -27,7 +27,7 @@ const getLeaveBalance = (request, response) => {
       response.json(results.rows);
     }
   })
-  
+
 };
 
 const getHolidayList = (request, response) => {
@@ -42,7 +42,7 @@ const getHolidayList = (request, response) => {
       response.json(results.rows)
     }
   })
-  
+
 };
 
 const getLeaveOverview = (request, response) => {
@@ -60,7 +60,7 @@ const getLeaveOverview = (request, response) => {
       response.json(results.rows)
     }
   })
-  
+
 }
 
 /* 0 - Pending | 1 - Approved | -1 - Rejected 
@@ -88,7 +88,7 @@ const getLeaveRequests = (request, response) => {
       response.send(results.rows)
     }
   })
-  
+
 }
 
 const approveRequest = (request, response) => {
@@ -116,7 +116,7 @@ const approveRequest = (request, response) => {
         })
     }
   })
-  
+
 }
 
 const rejectRequest = (request, response) => {
@@ -150,7 +150,7 @@ const rejectRequest = (request, response) => {
               })
           }
         })
-        
+
       } else {
         pool.query(query, [id], (error, results) => {
           if (error) {
@@ -160,7 +160,7 @@ const rejectRequest = (request, response) => {
             response.sendStatus(200);
           }
         })
-        
+
       }
     })
     .catch(error => {
@@ -186,7 +186,7 @@ const submitRequest = (request, response) => {
       response.sendStatus(200);
     }
   })
-  
+
 }
 
 /* Utility Function
@@ -208,7 +208,7 @@ const getLeaveStatus = (companyCode, id) => {
         }
       }
     })
-    
+
   })
 }
 
@@ -223,7 +223,7 @@ const getAbbreviations = (request, response) => {
       response.json(results.rows)
     }
   })
-  
+
 }
 
 const getLegend = (request, response) => {
@@ -237,7 +237,7 @@ const getLegend = (request, response) => {
       response.json(results.rows)
     }
   })
-  
+
 }
 
 /* Utility Function
@@ -256,11 +256,11 @@ const updateLeaveBalance = (empid, typeid, days, companyCode) => {
       }
     })
   })
-  
+
 }
 
 const getDayStatus = (request, response) => {
-  
+
   var { companyCode, empid } = request.body
   const date = String(request.params.date);
   var holiday_query = `select title from ${companyCode}.ep_holidayList 
@@ -328,19 +328,19 @@ const getDayStatus = (request, response) => {
                   }
                 }
               })
-              
+
             }
           }
         })
-        
+
       }
     }
   })
-  
+
 }
- 
+
 const getDayInfo = (request, response) => {
-  
+
   var { companyCode, empid } = request.body
   const date = String(request.params.date);
   var holiday_query = `select title from ${companyCode}.ep_holidayList 
@@ -380,8 +380,10 @@ const getDayInfo = (request, response) => {
               })
             } else {
 
-              var time_query = `select 'Working' as category, action as type, to_char(time, 'HH24:MI:SS') as hours from ${companyCode}.ep_entryLogs
-                where emp_id = $1
+              var time_query = `select 'Working' as category, action as type, to_char(time, 'HH24:MI:SS') as hours, b.name as device
+                from ${companyCode}.ep_entryLogs a, ep_deviceDetails b 
+                where a.device_id = b.deviceId
+                AND emp_id = $1
                 AND to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = to_date($2, 'YYYYMMDD')
                 order by time`;
 
@@ -401,80 +403,80 @@ const getDayInfo = (request, response) => {
                   }
                 }
               })
-              
+
             }
           }
         })
-        
+
       }
     }
   })
-  
+
 }
 
-  // console.log("exited");
+// console.log("exited");
 
-  // if (nextStep === true) {
-  //   console.log("entered Here");
-  //   var leave_query = `select b.name from ${companyCode}.ep_leaveRequests a, ${companyCode}.ep_leaveTypes b
-  //                     where emp_id = $1
-  //                     and a.type = b.type_id
-  //                     and to_date(to_char(startdate, 'YYYYMMDD'), 'YYYYMMDD') <= to_date($2, 'YYYYMMDD')
-  //                     and to_date(to_char(enddate, 'YYYYMMDD'), 'YYYYMMDD') >= to_date($2, 'YYYYMMDD')
-  //                     and status = 1`;
+// if (nextStep === true) {
+//   console.log("entered Here");
+//   var leave_query = `select b.name from ${companyCode}.ep_leaveRequests a, ${companyCode}.ep_leaveTypes b
+//                     where emp_id = $1
+//                     and a.type = b.type_id
+//                     and to_date(to_char(startdate, 'YYYYMMDD'), 'YYYYMMDD') <= to_date($2, 'YYYYMMDD')
+//                     and to_date(to_char(enddate, 'YYYYMMDD'), 'YYYYMMDD') >= to_date($2, 'YYYYMMDD')
+//                     and status = 1`;
 
-  //   pool.query(leave_query, [empid, date], (error, results) => {
-  //     if (error) {
-  //       nextStep = false
-  //       response.sendStatus(500);
-  //     } else {
-  //       if (results.rowCount > 0) {
-  //         nextStep = false
-  //         response.json({
-  //           category: "Leave",
-  //           type: results.rows[0].name,
-  //           hours: 0
-  //         })
-  //       } else {
-  //         nextStep = true;
-  //       }
-  //     }
-  //   })
+//   pool.query(leave_query, [empid, date], (error, results) => {
+//     if (error) {
+//       nextStep = false
+//       response.sendStatus(500);
+//     } else {
+//       if (results.rowCount > 0) {
+//         nextStep = false
+//         response.json({
+//           category: "Leave",
+//           type: results.rows[0].name,
+//           hours: 0
+//         })
+//       } else {
+//         nextStep = true;
+//       }
+//     }
+//   })
 
-  // }
+// }
 
-  // if (nextStep) {
-  //   console.log("Here aswell")
-  //   var time_query = `select (EXTRACT(EPOCH FROM b.time - a.time)/3600)::decimal(9,2) as duration from (select time from ${companyCode}.ep_entryLogs
-  //                     where emp_id = $1 AND action = 'EMP_CHECKIN'
-  //                     AND to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = to_date($2, 'YYYYMMDD')
-  //                     order by time
-  //                     FETCH FIRST 1 ROW ONLY) a
-  //                     ,
-  //                     (select time from ${companyCode}.ep_entryLogs
-  //                     where emp_id = $1 AND action = 'EMP_CHECKOUT'
-  //                     AND to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = to_date($2, 'YYYYMMDD')
-  //                     order by time desc
-  //                     FETCH FIRST 1 ROW ONLY) b`;
+// if (nextStep) {
+//   console.log("Here aswell")
+//   var time_query = `select (EXTRACT(EPOCH FROM b.time - a.time)/3600)::decimal(9,2) as duration from (select time from ${companyCode}.ep_entryLogs
+//                     where emp_id = $1 AND action = 'EMP_CHECKIN'
+//                     AND to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = to_date($2, 'YYYYMMDD')
+//                     order by time
+//                     FETCH FIRST 1 ROW ONLY) a
+//                     ,
+//                     (select time from ${companyCode}.ep_entryLogs
+//                     where emp_id = $1 AND action = 'EMP_CHECKOUT'
+//                     AND to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = to_date($2, 'YYYYMMDD')
+//                     order by time desc
+//                     FETCH FIRST 1 ROW ONLY) b`;
 
-  //   pool.query(time_query, [empid, date], (error, results) => {
-  //     if (error) {
-  //       response.sendStatus(500);
-  //     } else {
-  //       if (results.rowCount > 0) {
-  //         nextStep = false
-  //         response.json({
-  //           category: "Working",
-  //           type: "",
-  //           hours: results.rows[0].duration
-  //         })
-  //       } else {
-  //         response.sendStatus(404);
-  //       }
-  //     }
-  //   })
+//   pool.query(time_query, [empid, date], (error, results) => {
+//     if (error) {
+//       response.sendStatus(500);
+//     } else {
+//       if (results.rowCount > 0) {
+//         nextStep = false
+//         response.json({
+//           category: "Working",
+//           type: "",
+//           hours: results.rows[0].duration
+//         })
+//       } else {
+//         response.sendStatus(404);
+//       }
+//     }
+//   })
 
-  // }
+// }
 
 
 module.exports = {

@@ -56,9 +56,10 @@ client.on('message', function(topic, message, packet){
     var cmd = payload.CMD;
     if(cmd === "EMP_CHECKIN" || cmd === "EMP_CHECKOUT"){
       console.log("[Entry Logging Service]: Payload received: " + payload);
+      var device = topic.substring(0,29)
       var empid = payload.EMPID;
       var time = payload.TIME;
-      makeDatabaseEntry(cmd, empid, time);
+      makeDatabaseEntry(cmd, empid, time, device);
     }
   } catch(error){
     console.log("Error in json received:" + error);
@@ -66,10 +67,10 @@ client.on('message', function(topic, message, packet){
 
 });
 
-function makeDatabaseEntry(cmd, empid, timestamp){
+function makeDatabaseEntry(cmd, empid, timestamp, device){
   var schema = empid.substring(0,7);
-  var query = `INSERT INTO ${schema}.ep_entryLogs values(DEFAULT, $1, $2, $3)`
-  pool.query(query, [empid, cmd, timestamp], (error, results) => {
+  var query = `INSERT INTO ${schema}.ep_entryLogs values(DEFAULT, $1, $2, $3, $4)`
+  pool.query(query, [empid, cmd, timestamp, device], (error, results) => {
     if (error) {
       console.log("Error for " + empid + " " + error);
     }
