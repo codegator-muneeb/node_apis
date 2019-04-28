@@ -340,9 +340,7 @@ const getDayStatus = (request, response) => {
 }
 
 const getDayInfo = (request, response) => {
-
-  var { companyCode, empid } = request.body
-  const date = String(request.params.date);
+  var { companyCode, empid, date } = request.body
   var holiday_query = `select title from ${companyCode}.ep_holidayList 
                         where to_date(to_char(occur_date, 'YYYYMMDD'), 'YYYYMMDD') = to_date($1, 'YYYYMMDD')
                         and type = 'Mandatory'`
