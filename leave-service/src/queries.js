@@ -412,6 +412,75 @@ const getDayInfo = (request, response) => {
 
 }
 
+/*startDate and endDate in YYYYMMDD*/
+const getOverAPeriodStatus = (request, response) => {
+  var { companyCode, empid, startDate, endDate } = request.body
+
+  var query = `select startdate, enddate, category, type, time FROM
+                (select to_char(occur_date, 'DD-MM-YYYY') as startDate, to_char(occur_date, 'DD-MM-YYYY') as endDate, 'Holiday' as category, title as type, 'Full Day' as time from ${companyCode}.ep_holidayList 
+                where to_date(to_char(occur_date, 'YYYYMMDD'), 'YYYYMMDD') in
+                (SELECT date_trunc('day', dd):: date
+                FROM generate_series
+                        ( '${startDate}'::timestamp 
+                        , '${endDate}'::timestamp
+                        , '1 day'::interval) dd
+                        )
+                and type = 'Mandatory'
+                
+                UNION
+                
+                select to_char(GREATEST(startdate, '${startDate}'::timestamp),'DD-MM-YYYY') as startdate, to_char(LEAST(enddate, '${endDate}'::timestamp), 'DD-MM-YYYY') as endDate, 
+                'Leave' as category, b.name as type, text(DATE_PART('day',enddate-startdate)) || ' day(s)' as time 
+                from ${companyCode}.ep_leaveRequests a, ${companyCode}.ep_leaveTypes b
+                where emp_id = '${empid}'
+                and a.type = b.type_id
+                and status = 1
+                and to_date(to_char(startdate, 'YYYYMMDD'), 'YYYYMMDD') in
+                (SELECT date_trunc('day', dd):: date
+                FROM generate_series('${startDate}'::timestamp , '${endDate}'::timestamp, '1 day'::interval) dd)
+                                          
+                UNION
+                  
+                select to_char(tseries.dateObj, 'DD-MM-YYYY') as startDate, to_char(tseries.dateObj, 'DD-MM-YYYY') as enddate, 'Working' as category, '-' as type, text((select sum(b.time - a.time) from
+                (select time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKIN'
+                and to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = tseries.dateObj and emp_id = '${empid}' order by time) a,
+                (select time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKOUT'
+                and to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = tseries.dateObj and emp_id = '${empid}' order by time) b
+                where a.index = b.index
+                and a.time < b.time
+                group by to_date(to_char(a.time, 'YYYYMMDD'), 'YYYYMMDD'))) || ' hours' as time
+                FROM (SELECT date_trunc('day', dd):: date as dateObj
+                FROM generate_series
+                        ( '${startDate}'::timestamp 
+                        , '${endDate}'::timestamp
+                        , '1 day'::interval) dd
+                        ) tseries) MASTER
+                ORDER BY to_date(startdate, 'DD-MM-YYYY')`
+
+  pool.query(query, (error, results) => {
+    if (error) {
+      console.log(error);
+      response.sendStatus(500);
+    } else {
+      response.json(results.rows)
+    }
+  })
+}
+
+module.exports = {
+  getLeaveBalance,
+  getHolidayList,
+  getLeaveOverview,
+  getLeaveRequests,
+  approveRequest,
+  rejectRequest,
+  submitRequest,
+  getAbbreviations,
+  getLegend,
+  getDayInfo,
+  getOverAPeriodStatus
+}
+
 // console.log("exited");
 
 // if (nextStep === true) {
@@ -475,17 +544,3 @@ const getDayInfo = (request, response) => {
 //   })
 
 // }
-
-
-module.exports = {
-  getLeaveBalance,
-  getHolidayList,
-  getLeaveOverview,
-  getLeaveRequests,
-  approveRequest,
-  rejectRequest,
-  submitRequest,
-  getAbbreviations,
-  getLegend,
-  getDayInfo
-}
