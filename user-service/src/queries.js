@@ -36,7 +36,7 @@ const addUser = (request, response) => {
         employeeType, account, unit, division, department, team,
         permission, address, aadhar], (error, results) => {
             if (error) {
-                console.log(`Error inserting ${empid} in ep_empDetails\n`+error);
+                console.log(`Error inserting ${empid} in ep_empDetails\n` + error);
                 response.sendStatus(500);
             } else {
                 addUserDeviceRel(deviceListString)
@@ -51,7 +51,7 @@ const addUser = (request, response) => {
                                         response.sendStatus(200)
                                     },
                                         err2 => {
-                                            console.log(`Error inserting ${empid} in ep_masterLogin\n`+err2);
+                                            console.log(`Error inserting ${empid} in ep_masterLogin\n` + err2);
                                             response.sendStatus(500)
                                         })
                             },
@@ -82,7 +82,7 @@ function addToLoginTable(empid, email, dob, companyCode) {
                 return res("Passed");
             }
         })
-        
+
     })
 }
 
@@ -98,7 +98,7 @@ function addToMasterLogin(email, companyCode) {
                 return res("Passed");
             }
         })
-        
+
     })
 }
 
@@ -112,7 +112,7 @@ function addUserDeviceRel(query) {
                 return res("Passed");
             }
         })
-        
+
     });
 }
 
@@ -153,7 +153,7 @@ const deleteUsers = (request, response) => {
                 )
         }
     })
-    
+
 };
 
 function deleteLoginTable(userListString, companyCode) {
@@ -167,7 +167,7 @@ function deleteLoginTable(userListString, companyCode) {
                 return res("Passed");
             }
         })
-        
+
     })
 }
 
@@ -183,7 +183,7 @@ function deleteMasterLogin(userListString, companyCode) {
                 return res("Passed");
             }
         })
-        
+
     })
 }
 
@@ -198,7 +198,7 @@ function deleteUserDeviceRel(userListString, companyCode) {
                 return res("Passed");
             }
         })
-        
+
     });
 }
 
@@ -212,7 +212,7 @@ const updateUser = (request, response) => {
             response.sendStatus(200);
         }
     })
-    
+
 };
 
 const enableUser = (request, response) => {
@@ -225,7 +225,7 @@ const enableUser = (request, response) => {
             response.sendStatus(200);
         }
     })
-    
+
 };
 
 const getUserDeviceList = (request, response) => {
@@ -241,7 +241,7 @@ const getUserDeviceList = (request, response) => {
             response.json(results.rows);
         }
     })
-    
+
 };
 
 const getAllUsers = (request, response) => {
@@ -256,7 +256,7 @@ const getAllUsers = (request, response) => {
             response.json(results.rows);
         }
     })
-    
+
 };
 
 const getEmpTypes = (request, response) => {
@@ -270,7 +270,7 @@ const getEmpTypes = (request, response) => {
             response.json(results.rows);
         }
     })
-    
+
 };
 
 const getAccounts = (request, response) => {
@@ -284,7 +284,7 @@ const getAccounts = (request, response) => {
             response.json(results.rows);
         }
     })
-    
+
 };
 
 const getDivisions = (request, response) => {
@@ -298,7 +298,7 @@ const getDivisions = (request, response) => {
             response.json(results.rows);
         }
     })
-    
+
 };
 
 const getUnits = (request, response) => {
@@ -312,7 +312,7 @@ const getUnits = (request, response) => {
             response.json(results.rows);
         }
     })
-    
+
 };
 
 const getDepts = (request, response) => {
@@ -326,7 +326,7 @@ const getDepts = (request, response) => {
             response.json(results.rows);
         }
     })
-    
+
 };
 
 const getPermissions = (request, response) => {
@@ -340,7 +340,7 @@ const getPermissions = (request, response) => {
             response.json(results.rows);
         }
     })
-    
+
 };
 
 const getTeams = (request, response) => {
@@ -354,7 +354,7 @@ const getTeams = (request, response) => {
             response.json(results.rows);
         }
     })
-    
+
 };
 
 const getTeamMembers = (request, response) => {
@@ -370,8 +370,29 @@ const getTeamMembers = (request, response) => {
             response.json(results.rows);
         }
     })
-    
+
 };
+
+const assignManager = (request, response) => {
+    const { companyCode, managerId, empids } = request.body;
+
+    var valueString = ""
+    for (var empid of empids) {
+        valueString += ` ('${managerId}', '${empid}'),`;
+    }
+    valueString = deviceListString.slice(0, -1)
+
+    var query = `INSERT INTO ${companyCode}.ep_empManager VALUES ${valueString}`
+
+    pool.query(query, (error, results) => {
+        if (error) {
+            console.error(error)
+            response.sendStatus(500);
+        } else {
+            response.json(results.rows);
+        }
+    })
+}
 
 module.exports = {
     deleteUsers,
@@ -387,5 +408,6 @@ module.exports = {
     getDepts,
     getPermissions,
     getTeamMembers,
-    getTeams
+    getTeams,
+    assignManager
 }
