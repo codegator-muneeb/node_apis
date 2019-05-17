@@ -380,7 +380,7 @@ const assignManager = (request, response) => {
     for (var empid of empids) {
         valueString += ` ('${managerId}', '${empid}'),`;
     }
-    valueString = deviceListString.slice(0, -1)
+    valueString = valueString.slice(0, -1)
 
     var query = `INSERT INTO ${companyCode}.ep_empManager VALUES ${valueString}`
 
