@@ -15,7 +15,7 @@ const addUser = (request, response) => {
     const { empid, rfid, finger, firstName, lastName, email, phone1,
         phone2, dob, gender, bloodGroup, city, country, pincode,
         employeeType, account, division, unit, team, department,
-        permission, deviceList, address } = request.body
+        permission, deviceList, address, aadhar } = request.body
 
     //console.log(deviceList);
     const companyCode = String(request.params.companyCode);
@@ -28,13 +28,13 @@ const addUser = (request, response) => {
 
     var query = `INSERT INTO ${companyCode}.ep_empDetails(emp_id,rfid,fingerprint_id,first_name,last_name,email,phone_1,phone_2,
                 dob,gender,blood_group,city,country,pin_code,emp_type,account_id,
-                unit_id,division_id,dept_id,team_id,permissions_id,address) VALUES
+                unit_id,division_id,dept_id,team_id,permissions_id,address, aadhar) VALUES
                 ($1, $2, $3, $4, $5, $6, $7, $8, to_date($9,'YYYYMMDD'), $10, $11, $12, $13, $14,
-                $15, $16, $17, $18, $19, $20, $21, $22)`;
+                $15, $16, $17, $18, $19, $20, $21, $22, $23)`;
     pool.query(query, [empid, rfid, finger, firstName, lastName, email, phone1,
         phone2, dob, gender, bloodGroup, city, country, pincode,
         employeeType, account, unit, division, department, team,
-        permission, address], (error, results) => {
+        permission, address, aadhar], (error, results) => {
             if (error) {
                 //console.log(error);
                 response.sendStatus(500);
