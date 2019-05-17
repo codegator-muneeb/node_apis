@@ -36,7 +36,7 @@ const addUser = (request, response) => {
         employeeType, account, unit, division, department, team,
         permission, address, aadhar], (error, results) => {
             if (error) {
-                //console.log(error);
+                console.log(`Error inserting ${empid} in ep_empDetails\n`+error);
                 response.sendStatus(500);
             } else {
                 addUserDeviceRel(deviceListString)
@@ -51,18 +51,18 @@ const addUser = (request, response) => {
                                         response.sendStatus(200)
                                     },
                                         err2 => {
-                                            //console.log("Master: " + err2);
+                                            console.log(`Error inserting ${empid} in ep_masterLogin\n`+err2);
                                             response.sendStatus(500)
                                         })
                             },
                                 err1 => {
-                                    //console.log("Login Table: " + err1);
+                                    console.log(`Error inserting ${empid} in ep_loginTable\n` + err1);
                                     response.sendStatus(500)
                                 })
 
                     },
                         err => {
-                            //console.log("EmpDev: " +err);
+                            console.log(`Error inserting ${empid} in ep_empDevRel\n` + err);
                             response.sendStatus(500)
                         }
                     )
