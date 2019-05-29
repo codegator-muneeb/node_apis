@@ -114,15 +114,16 @@ class HandlerGenerator {
     resetPassword(req, res) {
         const { token, password } = req.body;
 
-        let buff = new Buffer(token, 'base64');
+        var decodedToken = decodeURIComponent(token);
+
+        let buff = new Buffer(decodedToken, 'base64');
         let tokenBase64 = buff.toString('ascii');
 
         jwt.verify(tokenBase64, publicKEY, verifyOptions, (err, tokenPayload) => {
             if (err) {
                 console.log("Invalid Token");
-                return res.sendStatus(500);
+                res.sendStatus(500);
             } else {
-
                 var companyCode = tokenPayload.company_code;
                 var email = tokenPayload.email;
                 var query = `UPDATE ${companyCode}.ep_login SET password = $1 WHERE email = $2`
