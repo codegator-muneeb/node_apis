@@ -441,7 +441,7 @@ const getOverAPeriodStatus = (request, response) => {
                                           
                 UNION
                   
-                select to_char(tseries.dateObj, 'DD-MM-YYYY') as startDate, to_char(tseries.dateObj, 'DD-MM-YYYY') as enddate, 'Working' as category, '-' as type, text((select sum(b.time - a.time) from
+                select to_char(tseries.dateObj, 'DD-MM-YYYY') as startDate, to_char(tseries.dateObj, 'DD-MM-YYYY') as enddate, 'Working' as category, 'IN OFFICE' as type, text((select sum(b.time - a.time) from
                 (select time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKIN'
                 and to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = tseries.dateObj and emp_id = '${empid}' order by time) a,
                 (select time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKOUT'
@@ -480,7 +480,7 @@ const getManagerReportData = (request, response) => {
   }
   empIdList = empIdList.slice(0, -1)
 
-  var query = `select A.emp_id as "Employee_ID", A.first_name || ' ' || A.last_name as "Name", text((select sum((select sum(b.time - a.time) from
+  var query = `select SUBSTRING(A.emp_id, 8) as "Employee_ID", A.first_name || ' ' || A.last_name as "Name", text((select sum((select sum(b.time - a.time) from
               (select emp_id, time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKIN'
               and to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = tseries.dateObj and emp_id = A.emp_id order by time) a,
               (select emp_id, time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKOUT'
