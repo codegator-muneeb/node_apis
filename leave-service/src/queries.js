@@ -378,7 +378,7 @@ const getDayInfo = (request, response) => {
               })
             } else {
 
-              var time_query = `select 'Working' as category, action as type, to_char(time, 'HH24:MI:SS') as hours, b.name as device
+              var time_query = `select 'Working' as category, SUBSTRING(action, 8) as type, to_char(time, 'HH24:MI:SS') as hours, b.name as device
                 from ${companyCode}.ep_entryLogs a, ep_deviceDetails b 
                 where a.device_id = b.deviceId
                 AND emp_id = $1
@@ -457,6 +457,9 @@ const getOverAPeriodStatus = (request, response) => {
                         ) tseries) MASTER
                 ORDER BY to_date(startdate, 'DD-MM-YYYY')`
 
+
+
+
   pool.query(query, (error, results) => {
     if (error) {
       console.log(error);
@@ -501,6 +504,46 @@ const getManagerReportData = (request, response) => {
     } else {
       response.json(results.rows)
     }
+  })
+}
+
+async const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empId) => {
+  return new Promise((res, rej) => {
+    var query = `select to_char(time, 'YYYYMMDD') as date, time, action as index from ${companyCode}.ep_entryLogs where 
+                to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') in (SELECT date_trunc('day', dd):: date as dateObj
+                FROM generate_series
+                ( '${startDate}'::timestamp 
+                , '${endDate}'::timestamp
+                , '1 day'::interval) dd
+                ) and emp_id = '${empId}' order by time`
+
+    pool.query(query, (error, results) => {
+      if (error) {
+        rej({ success: false });
+        response.sendStatus(500);
+      } else {
+
+        var rawData = results.rows;
+
+        var groupByData = new Map();
+        for (var record of rawData) {
+          if (groupByData.has(record.date)) {
+            groupByData.get(record.date).push(record);
+          } else {
+            groupByData.set(record.date, [record]);
+          }
+        }
+
+        for (var key of groupByData.keys) {
+          var recordSet = groupByData.get(key);
+          var time = 0;
+          for (i = 0; i < recordSet.length; i++) {
+
+          }
+        }
+
+      }
+    })
   })
 }
 
