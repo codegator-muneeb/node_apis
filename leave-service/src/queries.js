@@ -507,45 +507,45 @@ const getManagerReportData = (request, response) => {
   })
 }
 
-async const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empId) => {
-  return new Promise((res, rej) => {
-    var query = `select to_char(time, 'YYYYMMDD') as date, time, action as index from ${companyCode}.ep_entryLogs where 
-                to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') in (SELECT date_trunc('day', dd):: date as dateObj
-                FROM generate_series
-                ( '${startDate}'::timestamp 
-                , '${endDate}'::timestamp
-                , '1 day'::interval) dd
-                ) and emp_id = '${empId}' order by time`
+// async const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empId) => {
+//   return new Promise((res, rej) => {
+//     var query = `select to_char(time, 'YYYYMMDD') as date, time, action as index from ${companyCode}.ep_entryLogs where 
+//                 to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') in (SELECT date_trunc('day', dd):: date as dateObj
+//                 FROM generate_series
+//                 ( '${startDate}'::timestamp 
+//                 , '${endDate}'::timestamp
+//                 , '1 day'::interval) dd
+//                 ) and emp_id = '${empId}' order by time`
 
-    pool.query(query, (error, results) => {
-      if (error) {
-        rej({ success: false });
-        response.sendStatus(500);
-      } else {
+//     pool.query(query, (error, results) => {
+//       if (error) {
+//         rej({ success: false });
+//         response.sendStatus(500);
+//       } else {
 
-        var rawData = results.rows;
+//         var rawData = results.rows;
 
-        var groupByData = new Map();
-        for (var record of rawData) {
-          if (groupByData.has(record.date)) {
-            groupByData.get(record.date).push(record);
-          } else {
-            groupByData.set(record.date, [record]);
-          }
-        }
+//         var groupByData = new Map();
+//         for (var record of rawData) {
+//           if (groupByData.has(record.date)) {
+//             groupByData.get(record.date).push(record);
+//           } else {
+//             groupByData.set(record.date, [record]);
+//           }
+//         }
 
-        for (var key of groupByData.keys) {
-          var recordSet = groupByData.get(key);
-          var time = 0;
-          for (i = 0; i < recordSet.length; i++) {
+//         for (var key of groupByData.keys) {
+//           var recordSet = groupByData.get(key);
+//           var time = 0;
+//           for (i = 0; i < recordSet.length; i++) {
 
-          }
-        }
+//           }
+//         }
 
-      }
-    })
-  })
-}
+//       }
+//     })
+//   })
+// }
 
 module.exports = {
   getLeaveBalance,
