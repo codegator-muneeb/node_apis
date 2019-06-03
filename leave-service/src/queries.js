@@ -378,7 +378,7 @@ const getDayInfo = (request, response) => {
               })
             } else {
 
-              var time_query = `select 'Working' as category, SUBSTRING(action, 8) as type, to_char(time, 'HH24:MI:SS') as hours, b.name as device
+              var time_query = `select 'Working' as category, SUBSTRING(action, 10) as type, to_char(time, 'HH24:MI:SS') as hours, b.name as device
                 from ${companyCode}.ep_entryLogs a, ep_deviceDetails b 
                 where a.device_id = b.deviceId
                 AND emp_id = $1
