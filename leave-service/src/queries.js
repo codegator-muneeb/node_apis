@@ -2,12 +2,12 @@
 
 const Pool = require('pg').Pool
 const pool = new Pool({
-  user: 'doadmin',
+  user: Config.USER,
   host: Config.HOST,
   database: Config.DB,
   password: Config.PWD,
   port: Config.PORT,
-  ssl: true
+  //ssl: true
 })
 
 const getLeaveBalance = (request, response) => {
@@ -507,45 +507,159 @@ const getManagerReportData = (request, response) => {
   })
 }
 
-// async const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empId) => {
-//   return new Promise((res, rej) => {
-//     var query = `select to_char(time, 'YYYYMMDD') as date, time, action as index from ${companyCode}.ep_entryLogs where 
-//                 to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') in (SELECT date_trunc('day', dd):: date as dateObj
-//                 FROM generate_series
-//                 ( '${startDate}'::timestamp 
-//                 , '${endDate}'::timestamp
-//                 , '1 day'::interval) dd
-//                 ) and emp_id = '${empId}' order by time`
+const getManagerComprehensiveReport = (request, response) => {
 
-//     pool.query(query, (error, results) => {
-//       if (error) {
-//         rej({ success: false });
-//         response.sendStatus(500);
-//       } else {
+  const { startDate, endDate, empids, companyCode } = request.body;
 
-//         var rawData = results.rows;
+  getWorkingTimeForEachDay(startDate, endDate, companyCode, empids)
+  .then(result => {
 
-//         var groupByData = new Map();
-//         for (var record of rawData) {
-//           if (groupByData.has(record.date)) {
-//             groupByData.get(record.date).push(record);
-//           } else {
-//             groupByData.set(record.date, [record]);
-//           }
-//         }
+    console.log(result);
 
-//         for (var key of groupByData.keys) {
-//           var recordSet = groupByData.get(key);
-//           var time = 0;
-//           for (i = 0; i < recordSet.length; i++) {
+    if (result.success === true) {
+      var empIdList = "";
+      for (var empid of empids) {
+        empIdList += `'${empid}',`;
+      }
+      empIdList = empIdList.slice(0, -1)
 
-//           }
-//         }
+      var query = `select SUBSTRING(A.emp_id, 8) as empid, A.first_name || ' ' || A.last_name as name
+                  from ${companyCode}.ep_empDetails A
+                  where A.emp_id in (${empIdList})`;
 
-//       }
-//     })
-//   })
-// }
+      pool.query(query, (error, names) => {
+        if (error) {
+          console.log(error);
+          response.sendStatus(500);
+        } else {
+          var namesObj = names.rows;
+          var dataObj = result.data;
+
+          for (var row of namesObj) {
+            var data = dataObj.find(obj => {
+              return obj.empid === row.empid
+            }).data;
+            console.log(data);
+            row.data = data;
+          }
+
+          response.json(namesObj);
+        }
+      })
+
+    } else {
+      response.sendStatus(500);
+    }
+  }
+    , err => {
+      console.log("Some Error occured: " + err)
+      response.sendStatus(500)
+    })
+}
+
+
+//const { startDate, endDate, companyCode, empids } = req.body;
+const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
+  return new Promise((res, rej) => {
+
+    var empIdList = "";
+    for (var empid of empids) {
+      empIdList += `'${empid}',`;
+    }
+    empIdList = empIdList.slice(0, -1)
+
+    var query = `select SUBSTRING(emp_id, 8) as empid, to_char(time AT TIME ZONE 'Asia/Kolkata', 'YYYYMMDD') as date, (time AT TIME ZONE 'Asia/Kolkata') as time, action from ${companyCode}.ep_entryLogs where 
+                to_date(to_char(time AT TIME ZONE 'Asia/Kolkata', 'YYYYMMDD'), 'YYYYMMDD') in (SELECT date_trunc('day', dd):: date as dateObj
+                FROM generate_series
+                ( '${startDate}'::timestamp 
+                , '${endDate}'::timestamp
+                , '1 day'::interval) dd
+                ) and emp_id IN (${empIdList}) order by time`
+
+    pool.query(query, (error, results) => {
+      if (error) {
+        //res.sendStatus(500);
+        console.log(`[Daily Hour Calculation]: ` + error);
+        return rej({ success: false });
+      } else {
+
+        var rawData = results.rows;
+
+        var groupDataByEmpId = new Map();
+        for (var record of rawData) {
+          if (groupDataByEmpId.has(record.empid)) {
+            groupDataByEmpId.get(record.empid).push(record);
+          } else {
+            groupDataByEmpId.set(record.empid, [record]);
+          }
+        }
+
+        var maserEmpMap = [];
+
+        for (var empid of groupDataByEmpId.keys()) {
+
+          var data = groupDataByEmpId.get(empid);
+
+          var groupByData = new Map();
+          for (var record of data) {
+            if (groupByData.has(record.date)) {
+              groupByData.get(record.date).push(record);
+            } else {
+              groupByData.set(record.date, [record]);
+            }
+          }
+
+          var dateHoursMap = [];
+
+          for (var key of groupByData.keys()) {
+            var recordSet = groupByData.get(key);
+            var time = 0;
+            for (i = 0; i <= recordSet.length - 1; i++) {
+
+              if (i === recordSet.length - 1 && recordSet[i].action === "EMP_CHECKIN") {
+
+                var time1 = new Date(recordSet[i].time);
+                var time2 = new Date(recordSet[i].time);
+                time2.setHours(23); time2.setMinutes(59); time2.setSeconds(59);
+                var difference = (time2 - time1) / (1000 * 60 * 60);
+                time += difference;
+                //console.log(`${time1} ${time2} ${difference} ${time}`);
+              }
+
+              else if (i === 0 && recordSet[i].action === "EMP_CHECKOUT") {
+
+                var time2 = new Date(recordSet[i].time);
+                var time1 = new Date(recordSet[i].time);
+                time1.setHours(0); time1.setMinutes(0); time1.setSeconds(0);
+                var difference = (time2 - time1) / (1000 * 60 * 60);
+                time += difference;
+                //console.log(`${time1} ${time2} ${difference} ${time}`)
+              }
+
+              else if (recordSet[i].action === "EMP_CHECKIN" && recordSet[i + 1].action === "EMP_CHECKOUT") {
+                var time2 = new Date(recordSet[i + 1].time);
+                var time1 = new Date(recordSet[i].time);
+                var difference = (time2 - time1) / (1000 * 60 * 60);
+                time += difference;
+              }
+            }
+            dateHoursMap.push({ date: key, hours: time.toFixed(2) });
+          }
+
+          maserEmpMap.push({ empid: empid, data: dateHoursMap });
+        }
+
+        console.log(maserEmpMap);
+
+        return res({
+          success: true,
+          data: maserEmpMap
+        })
+
+      }
+    })
+  })
+}
 
 module.exports = {
   getLeaveBalance,
@@ -559,7 +673,9 @@ module.exports = {
   getLegend,
   getDayInfo,
   getOverAPeriodStatus,
-  getManagerReportData
+  getManagerReportData,
+  getManagerComprehensiveReport,
+  getWorkingTimeForEachDay
 }
 
 // console.log("exited");

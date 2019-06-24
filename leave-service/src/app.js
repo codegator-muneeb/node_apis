@@ -47,6 +47,7 @@ app.get('/leaves/legend/:companyCode', db.getLegend)
 app.post('/leaves/dayStatus', db.getDayInfo);
 app.post('/leaves/overAPeriodStatus', db.getOverAPeriodStatus)
 app.post('/leaves/managerReport', db.getManagerReportData)
+app.post('/leaves/managerCompReport', db.getManagerComprehensiveReport)
 
 app.get('/', (request, response) => {
     response.json({info: 'Zerowav Leave Service Running'});
