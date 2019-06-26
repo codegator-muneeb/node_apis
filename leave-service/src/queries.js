@@ -500,13 +500,18 @@ const getManagerReportData = (request, response) => {
             var dataObj = result.data;
 
             for (var row of namesObj) {
-              var data = dataObj.find(obj => {
+              var dataRow = dataObj.find(obj => {
                 return obj.empid === row.Employee_ID
               }).data;
-              
+
+              var data = typeof dataRow !== "undefined" ? dataRow.data : [];
+
               var totalHours = 0;
-              for(var entry of data){
-                totalHours  = totalHours + Number(entry.hours);
+
+              if (data !== []) {
+                for (var entry of data) {
+                  totalHours = totalHours + Number(entry.hours);
+                }
               }
 
               row.Total_Hours = totalHours.toString();
@@ -529,6 +534,8 @@ const getManagerReportData = (request, response) => {
 const getManagerComprehensiveReport = (request, response) => {
 
   const { startDate, endDate, empids, companyCode } = request.body;
+
+  console.log(`Request Body: ${startDate}, ${endDate}, ${empids}, ${companyCode}`);
 
   getWorkingTimeForEachDay(startDate, endDate, companyCode, empids)
     .then(result => {
@@ -555,9 +562,10 @@ const getManagerComprehensiveReport = (request, response) => {
             var dataObj = result.data;
 
             for (var row of namesObj) {
-              var data = dataObj.find(obj => {
+              var dataRow = dataObj.find(obj => {
                 return obj.empid === row.empid
-              }).data;
+              });
+              var data = typeof dataRow !== "undefined" ? dataRow.data : [];
               console.log(data);
               row.data = data;
             }
@@ -668,9 +676,9 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
 
           var currentDate = moment(startDate);
           var stopDate = moment(endDate);
-          
+
           while (currentDate <= stopDate) {
-            
+
             var tempDate = moment(currentDate).format('YYYYMMDD');
             var recordIfAvailable = dateHoursMap.findIndex(obj => {
               return obj.date === tempDate
