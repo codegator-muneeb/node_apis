@@ -1,4 +1,5 @@
 ﻿const Config = require('./config');
+const moment = require('moment');
 
 const Pool = require('pg').Pool
 const pool = new Pool({
@@ -7,7 +8,7 @@ const pool = new Pool({
   database: Config.DB,
   password: Config.PWD,
   port: Config.PORT,
-  //ssl: true
+  ssl: true
 })
 
 const getLeaveBalance = (request, response) => {
@@ -474,37 +475,55 @@ const getManagerReportData = (request, response) => {
 
   const { startDate, endDate, empids, companyCode } = request.body;
 
-  var empIdList = "";
-  for (var empid of empids) {
-    empIdList += `'${empid}',`;
-  }
-  empIdList = empIdList.slice(0, -1)
+  getWorkingTimeForEachDay(startDate, endDate, companyCode, empids)
+    .then(result => {
 
-  var query = `select SUBSTRING(A.emp_id, 8) as "Employee_ID", A.first_name || ' ' || A.last_name as "Name", text((select sum((select sum(b.time - a.time) from
-              (select emp_id, time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKIN'
-              and to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = tseries.dateObj and emp_id = A.emp_id order by time) a,
-              (select emp_id, time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKOUT'
-              and to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = tseries.dateObj and emp_id = A.emp_id order by time) b
-              where a.index = b.index
-              and a.time < b.time
-              group by to_date(to_char(a.time, 'YYYYMMDD'), 'YYYYMMDD')))
-              FROM (SELECT date_trunc('day', dd):: date as dateObj
-              FROM generate_series
-                  ( '${startDate}'::timestamp 
-                  , '${endDate}'::timestamp
-                  , '1 day'::interval) dd
-                  ) tseries)) as "Total_Hours"
-              from ${companyCode}.ep_empDetails A
-              where A.emp_id in (${empIdList})`
+      console.log(result);
 
-  pool.query(query, (error, results) => {
-    if (error) {
-      console.log(error);
-      response.sendStatus(500);
-    } else {
-      response.json(results.rows)
+      if (result.success === true) {
+        var empIdList = "";
+        for (var empid of empids) {
+          empIdList += `'${empid}',`;
+        }
+        empIdList = empIdList.slice(0, -1)
+
+        var query = `select SUBSTRING(A.emp_id, 8) as "Employee_ID", A.first_name || ' ' || A.last_name as "Name"
+                  from ${companyCode}.ep_empDetails A
+                  where A.emp_id in (${empIdList})`;
+
+        pool.query(query, (error, names) => {
+          if (error) {
+            console.log(error);
+            response.sendStatus(500);
+          } else {
+            var namesObj = names.rows;
+            var dataObj = result.data;
+
+            for (var row of namesObj) {
+              var data = dataObj.find(obj => {
+                return obj.empid === row.Employee_ID
+              }).data;
+              
+              var totalHours = 0;
+              for(var entry of data){
+                totalHours  = totalHours + Number(entry.hours);
+              }
+
+              row.Total_Hours = totalHours.toString();
+            }
+
+            response.json(namesObj);
+          }
+        })
+
+      } else {
+        response.sendStatus(500);
+      }
     }
-  })
+      , err => {
+        console.log("Some Error occured: " + err)
+        response.sendStatus(500)
+      })
 }
 
 const getManagerComprehensiveReport = (request, response) => {
@@ -512,49 +531,49 @@ const getManagerComprehensiveReport = (request, response) => {
   const { startDate, endDate, empids, companyCode } = request.body;
 
   getWorkingTimeForEachDay(startDate, endDate, companyCode, empids)
-  .then(result => {
+    .then(result => {
 
-    console.log(result);
+      console.log(result);
 
-    if (result.success === true) {
-      var empIdList = "";
-      for (var empid of empids) {
-        empIdList += `'${empid}',`;
-      }
-      empIdList = empIdList.slice(0, -1)
+      if (result.success === true) {
+        var empIdList = "";
+        for (var empid of empids) {
+          empIdList += `'${empid}',`;
+        }
+        empIdList = empIdList.slice(0, -1)
 
-      var query = `select SUBSTRING(A.emp_id, 8) as empid, A.first_name || ' ' || A.last_name as name
+        var query = `select SUBSTRING(A.emp_id, 8) as empid, A.first_name || ' ' || A.last_name as name
                   from ${companyCode}.ep_empDetails A
                   where A.emp_id in (${empIdList})`;
 
-      pool.query(query, (error, names) => {
-        if (error) {
-          console.log(error);
-          response.sendStatus(500);
-        } else {
-          var namesObj = names.rows;
-          var dataObj = result.data;
+        pool.query(query, (error, names) => {
+          if (error) {
+            console.log(error);
+            response.sendStatus(500);
+          } else {
+            var namesObj = names.rows;
+            var dataObj = result.data;
 
-          for (var row of namesObj) {
-            var data = dataObj.find(obj => {
-              return obj.empid === row.empid
-            }).data;
-            console.log(data);
-            row.data = data;
+            for (var row of namesObj) {
+              var data = dataObj.find(obj => {
+                return obj.empid === row.empid
+              }).data;
+              console.log(data);
+              row.data = data;
+            }
+
+            response.json(namesObj);
           }
+        })
 
-          response.json(namesObj);
-        }
-      })
-
-    } else {
-      response.sendStatus(500);
+      } else {
+        response.sendStatus(500);
+      }
     }
-  }
-    , err => {
-      console.log("Some Error occured: " + err)
-      response.sendStatus(500)
-    })
+      , err => {
+        console.log("Some Error occured: " + err)
+        response.sendStatus(500)
+      })
 }
 
 
@@ -644,6 +663,23 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
               }
             }
             dateHoursMap.push({ date: key, hours: time.toFixed(2) });
+
+          }
+
+          var currentDate = moment(startDate);
+          var stopDate = moment(endDate);
+          
+          while (currentDate <= stopDate) {
+            
+            var tempDate = moment(currentDate).format('YYYYMMDD');
+            var recordIfAvailable = dateHoursMap.findIndex(obj => {
+              return obj.date === tempDate
+            })
+
+            if (recordIfAvailable < 0) {
+              dateHoursMap.push({ date: tempDate, hours: "0" });
+            }
+            currentDate = moment(currentDate).add(1, 'days');
           }
 
           maserEmpMap.push({ empid: empid, data: dateHoursMap });
@@ -740,4 +776,42 @@ module.exports = {
 //     }
 //   })
 
+// }
+
+//Old Methods for hour calculation
+// const getManagerReportData = (request, response) => {
+
+//   const { startDate, endDate, empids, companyCode } = request.body;
+
+//   var empIdList = "";
+//   for (var empid of empids) {
+//     empIdList += `'${empid}',`;
+//   }
+//   empIdList = empIdList.slice(0, -1)
+
+//   var query = `select SUBSTRING(A.emp_id, 8) as "Employee_ID", A.first_name || ' ' || A.last_name as "Name", text((select sum((select sum(b.time - a.time) from
+//               (select emp_id, time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKIN'
+//               and to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = tseries.dateObj and emp_id = A.emp_id order by time) a,
+//               (select emp_id, time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKOUT'
+//               and to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = tseries.dateObj and emp_id = A.emp_id order by time) b
+//               where a.index = b.index
+//               and a.time < b.time
+//               group by to_date(to_char(a.time, 'YYYYMMDD'), 'YYYYMMDD')))
+//               FROM (SELECT date_trunc('day', dd):: date as dateObj
+//               FROM generate_series
+//                   ( '${startDate}'::timestamp 
+//                   , '${endDate}'::timestamp
+//                   , '1 day'::interval) dd
+//                   ) tseries)) as "Total_Hours"
+//               from ${companyCode}.ep_empDetails A
+//               where A.emp_id in (${empIdList})`
+
+//   pool.query(query, (error, results) => {
+//     if (error) {
+//       console.log(error);
+//       response.sendStatus(500);
+//     } else {
+//       response.json(results.rows)
+//     }
+//   })
 // }
