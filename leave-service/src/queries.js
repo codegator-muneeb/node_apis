@@ -502,7 +502,7 @@ const getManagerReportData = (request, response) => {
             for (var row of namesObj) {
               var dataRow = dataObj.find(obj => {
                 return obj.empid === row.Employee_ID
-              }).data;
+              });
 
               var data = typeof dataRow !== "undefined" ? dataRow.data : [];
 
