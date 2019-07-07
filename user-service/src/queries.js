@@ -382,7 +382,45 @@ const assignManager = (request, response) => {
     }
     valueString = valueString.slice(0, -1)
 
-    var query = `INSERT INTO ${companyCode}.ep_empManager VALUES ${valueString}`
+    var query = `INSERT INTO ${companyCode}.ep_empManager (manager_id, emp_id) VALUES ${valueString}`
+
+    pool.query(query, (error, results) => {
+        if (error) {
+            console.error(error)
+            response.sendStatus(500);
+        } else {
+            response.json(results.rows);
+        }
+    })
+}
+
+const removeManager = (request, response) => {
+    const { companyCode, managerId, empids } = request.body;
+
+    var valueString = ""
+    for (var empid of empids) {
+        valueString += ` ('${managerId}', '${empid}'),`;
+    }
+    valueString = valueString.slice(0, -1)
+
+    var query = `DELETE FROM ${companyCode}.ep_empManager where (manager_id, emp_id) IN (${valueString})`
+
+    pool.query(query, (error, results) => {
+        if (error) {
+            console.error(error)
+            response.sendStatus(500);
+        } else {
+            response.json(results.rows);
+        }
+    })
+}
+
+const getManagers = (request, response) => {
+    const { companyCode } = request.body;
+
+    var query = `SELECT C.emp_id, C.first_name, C.last_name 
+                FROM ${companyCode}.ep_empDetails C where C.emp_id in 
+                (SELECT DISTINCT manager_id as emp_id from ${companyCode}.ep_empManager)`;
 
     pool.query(query, (error, results) => {
         if (error) {
@@ -409,5 +447,7 @@ module.exports = {
     getPermissions,
     getTeamMembers,
     getTeams,
-    assignManager
+    assignManager,
+    removeManager,
+    getManagers
 }
