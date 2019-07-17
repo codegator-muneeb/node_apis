@@ -8,7 +8,7 @@ const pool = new Pool({
   database: Config.DB,
   password: Config.PWD,
   port: Config.PORT,
-  ssl: true
+  ssl: Config.SSL
 })
 
 const getLeaveBalance = (request, response) => {
@@ -526,7 +526,7 @@ const getManagerReportData = (request, response) => {
       }
     }
       , err => {
-        console.log("Some Error occured: " + err)
+        console.log(err)
         response.sendStatus(500)
       })
 }
@@ -595,7 +595,7 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
     }
     empIdList = empIdList.slice(0, -1)
 
-    var query = `select SUBSTRING(emp_id, 8) as empid, to_char(time AT TIME ZONE 'Asia/Kolkata', 'YYYYMMDD') as date, (time AT TIME ZONE 'Asia/Kolkata') as time, action from ${companyCode}.ep_entryLogs where 
+    var query = `select SUBSTRING(emp_id, 8) as empid, to_char(time AT TIME ZONE 'Asia/Kolkata', 'DD-MM-YYYY') as date, (time AT TIME ZONE 'Asia/Kolkata') as time, action from ${companyCode}.ep_entryLogs where 
                 to_date(to_char(time AT TIME ZONE 'Asia/Kolkata', 'YYYYMMDD'), 'YYYYMMDD') in (SELECT date_trunc('day', dd):: date as dateObj
                 FROM generate_series
                 ( '${startDate}'::timestamp 
@@ -629,6 +629,7 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
 
           var groupByData = new Map();
           for (var record of data) {
+            console.log(record.date);
             if (groupByData.has(record.date)) {
               groupByData.get(record.date).push(record);
             } else {
@@ -679,7 +680,7 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
 
           while (currentDate <= stopDate) {
 
-            var tempDate = moment(currentDate).format('YYYYMMDD');
+            var tempDate = moment(currentDate).format('DD-MM-YYYY');
             var recordIfAvailable = dateHoursMap.findIndex(obj => {
               return obj.date === tempDate
             })
@@ -689,6 +690,15 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
             }
             currentDate = moment(currentDate).add(1, 'days');
           }
+
+          dateHoursMap.sort(function (a, b) {
+            var dateA = a.date.toLowerCase(), dateB = b.date.toLowerCase()
+            if (dateA < dateB) //sort string ascending
+              return -1;
+            if (dateA > dateB)
+              return 1;
+            return 0;
+          })
 
           maserEmpMap.push({ empid: empid, data: dateHoursMap });
         }

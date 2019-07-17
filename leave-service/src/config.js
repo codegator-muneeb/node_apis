@@ -4,6 +4,7 @@ const PWD = 'x00suokhtm4xo568';
 const PORT = 25060;
 const API_PORT = 3008;
 const USER = 'doadmin';
+const SSL = true;
 
 // const HOST = 'localhost';
 // const DB = 'entry_point_db';
@@ -11,6 +12,7 @@ const USER = 'doadmin';
 // const PORT = 5432;
 // const API_PORT = 3008;
 // const USER = 'postgres';
+// const SSL = false;
 
 module.exports = {
     HOST,
@@ -18,5 +20,6 @@ module.exports = {
     PWD,
     PORT,
     API_PORT,
-    USER
+    USER, 
+    SSL,
 };
