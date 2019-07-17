@@ -595,13 +595,21 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
     }
     empIdList = empIdList.slice(0, -1)
 
-    var query = `select SUBSTRING(emp_id, 8) as empid, to_char(time AT TIME ZONE 'Asia/Kolkata', 'DD-MM-YYYY') as date, (time AT TIME ZONE 'Asia/Kolkata') as time, action from ${companyCode}.ep_entryLogs where 
-                to_date(to_char(time AT TIME ZONE 'Asia/Kolkata', 'YYYYMMDD'), 'YYYYMMDD') in (SELECT date_trunc('day', dd):: date as dateObj
+    var query = `select SUBSTRING(emp_id, 8) as empid, to_char(time, 'DD-MM-YYYY') as date, (time) as time, action from ${companyCode}.ep_entryLogs where 
+                to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') in (SELECT date_trunc('day', dd):: date as dateObj
                 FROM generate_series
                 ( '${startDate}'::timestamp 
                 , '${endDate}'::timestamp
                 , '1 day'::interval) dd
                 ) and emp_id IN (${empIdList}) order by time`
+
+    // var query = `select SUBSTRING(emp_id, 8) as empid, to_char(time AT TIME ZONE 'Asia/Kolkata', 'DD-MM-YYYY') as date, (time AT TIME ZONE 'Asia/Kolkata') as time, action from ${companyCode}.ep_entryLogs where 
+    // to_date(to_char(time AT TIME ZONE 'Asia/Kolkata', 'YYYYMMDD'), 'YYYYMMDD') in (SELECT date_trunc('day', dd):: date as dateObj
+    // FROM generate_series
+    // ( '${startDate}'::timestamp 
+    // , '${endDate}'::timestamp
+    // , '1 day'::interval) dd
+    // ) and emp_id IN (${empIdList}) order by time`
 
     pool.query(query, (error, results) => {
       if (error) {
@@ -611,6 +619,7 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
       } else {
 
         var rawData = results.rows;
+        console.log(results.rows);
 
         var groupDataByEmpId = new Map();
         for (var record of rawData) {
@@ -648,20 +657,20 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
 
                 var time1 = new Date(recordSet[i].time);
                 var time2 = new Date(recordSet[i].time);
-                time2.setHours(23); time2.setMinutes(59); time2.setSeconds(59);
+                time2.setUTCHours(23); time2.setUTCMinutes(59); time2.setUTCSeconds(59);
                 var difference = (time2 - time1) / (1000 * 60 * 60);
                 time += difference;
-                //console.log(`${time1} ${time2} ${difference} ${time}`);
+                console.log(`${time1} ${time2} ${difference} ${time}`);
               }
 
               else if (i === 0 && recordSet[i].action === "EMP_CHECKOUT") {
 
                 var time2 = new Date(recordSet[i].time);
                 var time1 = new Date(recordSet[i].time);
-                time1.setHours(0); time1.setMinutes(0); time1.setSeconds(0);
+                time1.setUTCHours(0); time1.setUTCMinutes(0); time1.setUTCSeconds(0);
                 var difference = (time2 - time1) / (1000 * 60 * 60);
                 time += difference;
-                //console.log(`${time1} ${time2} ${difference} ${time}`)
+                console.log(`${time1} ${time2} ${difference} ${time}`)
               }
 
               else if (recordSet[i].action === "EMP_CHECKIN" && recordSet[i + 1].action === "EMP_CHECKOUT") {
@@ -669,6 +678,7 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
                 var time1 = new Date(recordSet[i].time);
                 var difference = (time2 - time1) / (1000 * 60 * 60);
                 time += difference;
+                console.log(`${time1} ${time2} ${difference} ${time}`)
               }
             }
             dateHoursMap.push({ date: key, hours: time.toFixed(2) });
