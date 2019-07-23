@@ -48,11 +48,11 @@ const getHolidayList = (request, response) => {
 
 const getLeaveOverview = (request, response) => {
   const { companyCode, empid } = request.body
-  var query = `SELECT b.name, to_char(startDate, 'DD/MM/YYYY HH24:MI') as startDate, to_char(endDate, 'DD/MM/YYYY HH24:MI') as endDate, c.title as status, (EXTRACT(EPOCH FROM endDate - startDate)/3600)::Integer 
+  var query = `SELECT a.id as id, a.type as typeid, b.name, to_char(startDate, 'DD/MM/YYYY HH24:MI') as startDate, to_char(endDate, 'DD/MM/YYYY HH24:MI') as endDate, c.title as status, (EXTRACT(EPOCH FROM endDate - startDate)/3600)::Integer 
               as duration FROM ${companyCode}.ep_leaveRequests a, ${companyCode}.ep_leaveTypes b, ep_leaveStatus c
               where a.type = b.type_id
               AND a.status = c.status
-              AND emp_id = $1 order by created_on`;
+              AND emp_id = $1 order by created_on desc`;
   pool.query(query, [empid], (error, results) => {
     if (error) {
       console.log(error);
@@ -78,7 +78,7 @@ const getLeaveRequests = (request, response) => {
               AND a.manager_id = $1
               AND a.status = $2
               AND a.status = d.status
-              order by created_on`;
+              order by created_on desc`;
 
   pool.query(query, [managerid, status], (error, results) => {
     if (error) {
