@@ -432,6 +432,23 @@ const getManagers = (request, response) => {
     })
 }
 
+const getEmployeeManagers = (request, response) => {
+    const { companyCode, empid } = request.body;
+
+    var query = `SELECT C.emp_id, C.first_name, C.last_name 
+                FROM ${companyCode}.ep_empDetails C where C.emp_id in 
+                (SELECT DISTINCT manager_id as emp_id from ${companyCode}.ep_empManager where emp_id = $1)`;
+
+    pool.query(query, [empid], (error, results) => {
+        if (error) {
+            console.error(error)
+            response.sendStatus(500);
+        } else {
+            response.json(results.rows);
+        }
+    })
+}
+
 module.exports = {
     deleteUsers,
     updateUser,
@@ -449,5 +466,6 @@ module.exports = {
     getTeams,
     assignManager,
     removeManager,
-    getManagers
+    getManagers,
+    getEmployeeManagers
 }

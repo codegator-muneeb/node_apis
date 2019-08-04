@@ -11,6 +11,18 @@ const pool = new Pool({
   ssl: Config.SSL
 })
 
+const getLeaveTypes = (request, response) => {
+  const companyCode = String(request.params.companyCode);
+  var query = `SELECT type_id as id, name FROM ${companyCode}.ep_leaveTypes order by id`;
+  pool.query(query, (error, results) => {
+    if (error) {
+      response.sendStatus(500);
+    } else {
+      response.json(results.rows)
+    }
+  })
+}
+
 const getLeaveBalance = (request, response) => {
   console.log(request.body);
   const { companyCode, empid } = request.body;
@@ -93,7 +105,7 @@ const getLeaveRequests = (request, response) => {
 }
 
 const approveRequest = (request, response) => {
-  const { companyCode, id, empid, type } = request.body;
+  const { companyCode, id, empid, type, days } = request.body;
 
   var query = `UPDATE ${companyCode}.ep_leaveRequests SET status = 1 WHERE id = $1`;
 
@@ -102,7 +114,7 @@ const approveRequest = (request, response) => {
       console.log(error);
       response.sendStatus(500);
     } else {
-      updateLeaveBalance(empid, type, -1, companyCode)
+      updateLeaveBalance(empid, type, -days, companyCode)
         .then(updateBalanceRes => {
           if (updateBalanceRes.result === 0) {
             console.log("Couldn't update leave balance for empid: " + empid);
@@ -121,7 +133,7 @@ const approveRequest = (request, response) => {
 }
 
 const rejectRequest = (request, response) => {
-  const { companyCode, id, empid, type } = request.body;
+  const { companyCode, id, empid, type, days } = request.body;
 
   var query = `UPDATE ${companyCode}.ep_leaveRequests SET status = -1 WHERE id = $1`;
 
@@ -136,7 +148,7 @@ const rejectRequest = (request, response) => {
             console.log(error);
             response.sendStatus(500);
           } else {
-            updateLeaveBalance(empid, type, 1, companyCode)
+            updateLeaveBalance(empid, type, days, companyCode)
               .then(updateBalanceRes => {
                 if (updateBalanceRes.result === 0) {
                   console.log("Couldn't update leave balance for empid: " + empid);
@@ -247,15 +259,24 @@ const getLegend = (request, response) => {
 const updateLeaveBalance = (empid, typeid, days, companyCode) => {
   return new Promise((res, rej) => {
 
-    var query = `UPDATE ${companyCode}.ep_leaveBalance SET balance = balance  + ${days}
+    var selectQuery = `SELECT * from ${companyCode}.ep_leaveBalance where emp_id = $1 and type_id = $2`
+
+    pool.query(selectQuery, [empid, typeid], (err, selectResults) => {
+      if (selectResults.rowCount !== 0) {
+        var query = `UPDATE ${companyCode}.ep_leaveBalance SET balance = balance  + ${days}
                 where emp_id = $1 and type_id = $2`;
-    pool.query(query, [empid, typeid], (error, results) => {
-      if (error) {
-        return rej({ result: 0 });
-      } else {
-        return res({ result: 1 })
+        pool.query(query, [empid, typeid], (error, results) => {
+          if (error) {
+            return rej({ result: 0 });
+          } else {
+            return res({ result: 1 })
+          }
+        })
+      } else{
+        var insertQuery = `INSERT into ${companyCode}.ep_leaveBalance `
       }
     })
+
   })
 
 }
@@ -739,7 +760,8 @@ module.exports = {
   getOverAPeriodStatus,
   getManagerReportData,
   getManagerComprehensiveReport,
-  getWorkingTimeForEachDay
+  getWorkingTimeForEachDay,
+  getLeaveTypes
 }
 
 // console.log("exited");

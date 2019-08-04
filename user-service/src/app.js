@@ -52,6 +52,7 @@ app.get('/user/teams/:companyCode', db.getTeams);
 app.post('/user/assignManager', db.assignManager);
 app.post('/user/removeManager', db.removeManager);
 app.post('/user/getManagers', db.getManagers);
+app.post('/user/getEmpManagers', db.getEmployeeManagers)
 
 app.get('/', (request, response) => {
     response.json({info: 'Zerowav User Service Running'});
