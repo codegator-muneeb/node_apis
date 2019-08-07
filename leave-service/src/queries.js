@@ -521,8 +521,8 @@ const getOverAPeriodStatus = (request, response) => {
           }
         } else {
           var obj = {
-            startdate: startDate,
-            enddate: endDate,
+            startdate: moment(parseDate(startDate)).format('DD-MM-YYYY'),
+            enddate: moment(parseDate(endDate)).format('DD-MM-YYYY'),
             category: "-",
             type: "-",
             time: "No data found"
@@ -537,6 +537,13 @@ const getOverAPeriodStatus = (request, response) => {
         console.log(err)
         response.sendStatus(500)
       })
+}
+
+function parseDate(str) {
+  var y = str.substr(0, 4),
+    m = str.substr(4, 2),
+    d = str.substr(6, 2);
+  return new Date(y, m, d);
 }
 
 const getManagerReportData = (request, response) => {
