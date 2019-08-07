@@ -60,7 +60,7 @@ const getHolidayList = (request, response) => {
 
 const getLeaveOverview = (request, response) => {
   const { companyCode, empid } = request.body
-  var query = `SELECT a.id as id, a.type as typeid, b.name, to_char(startDate, 'DD/MM/YYYY HH24:MI') as startDate, a.manager_id as email, to_char(endDate, 'DD/MM/YYYY HH24:MI') as endDate, c.title as status, (EXTRACT(EPOCH FROM endDate - startDate)/3600)::Integer 
+  var query = `SELECT a.id as id, a.type as typeid, b.name, to_char(startDate, 'DD/MM/YYYY HH24:MI') as startDate, (Select email from ${companyCode}.ep_empDetails z where z.emp_id = a.manager_id) as email, to_char(endDate, 'DD/MM/YYYY HH24:MI') as endDate, c.title as status, (EXTRACT(EPOCH FROM endDate - startDate)/3600)::Integer 
               as duration FROM ${companyCode}.ep_leaveRequests a, ${companyCode}.ep_leaveTypes b, ep_leaveStatus c
               where a.type = b.type_id
               AND a.status = c.status
