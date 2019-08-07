@@ -511,8 +511,8 @@ const getOverAPeriodStatus = (request, response) => {
             var category = entry.hours == 0 ? "-" : "Working";
             var type = entry.hours == 0 ? "-" : "In Office";
             var obj = {
-              startDate: entry.date,
-              endDate: entry.date,
+              startdate: entry.date,
+              enddate: entry.date,
               category: category,
               type: type,
               time: `${entry.hours} hours`
@@ -521,8 +521,8 @@ const getOverAPeriodStatus = (request, response) => {
           }
         } else {
           var obj = {
-            startDate: startDate,
-            endDate: endDate,
+            startdate: startDate,
+            enddate: endDate,
             category: "-",
             type: "-",
             time: "No data found"
