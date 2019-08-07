@@ -82,7 +82,7 @@ const getLeaveRequests = (request, response) => {
   console.log(request.body);
   const { companyCode, managerid, status } = request.body
 
-  var query = `SELECT a.id, a.emp_id, concat_ws(' ', b.first_name, b.last_name) as fullname, a.type as typeid, c.name as type, to_char(a.startDate, 'DD/MM/YYYY HH24:MI') as startdate, 
+  var query = `SELECT a.id, a.emp_id, concat_ws(' ', b.first_name, b.last_name) as fullname, b.email as email, a.type as typeid, c.name as type, to_char(a.startDate, 'DD/MM/YYYY HH24:MI') as startdate, 
               to_char(a.endDate, 'DD/MM/YYYY HH24:MI') as enddate, d.title as reqstatus, (EXTRACT(EPOCH FROM endDate - startDate)/3600)::Integer as duration 
               FROM ${companyCode}.ep_leaveRequests a, ${companyCode}.ep_empDetails b, ${companyCode}.ep_leaveTypes c, ep_leaveStatus d 
               WHERE a.emp_id = b.emp_id
@@ -800,6 +800,31 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
   })
 }
 
+const sendEmail = (request, response) => {
+  const { toEmail, sub, body } = request.body;
+
+  const mailgun = require("mailgun-js");
+  const mg = mailgun({ apiKey: Config.SMTP_API_KEY, domain: Config.SMTP_DOMAIN });
+  const data = {
+    from: Config.FROM_EMAIL,
+    to: toEmail,
+    subject: sub,
+    html: body
+  };
+
+  mg.messages().send(data, function (error, body) {
+    if (error) {
+      console.log(error)
+      response.sendStatus(500);
+    }
+    console.log(body)
+    response.json({
+      success: true,
+      message: "Email sent successfully"
+    })
+  });
+}
+
 module.exports = {
   getLeaveBalance,
   getHolidayList,
@@ -815,7 +840,8 @@ module.exports = {
   getManagerReportData,
   getManagerComprehensiveReport,
   getWorkingTimeForEachDay,
-  getLeaveTypes
+  getLeaveTypes,
+  sendEmail
 }
 
 // console.log("exited");

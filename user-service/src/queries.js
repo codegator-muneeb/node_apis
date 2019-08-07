@@ -435,7 +435,7 @@ const getManagers = (request, response) => {
 const getEmployeeManagers = (request, response) => {
     const { companyCode, empid } = request.body;
 
-    var query = `SELECT C.emp_id, C.first_name, C.last_name 
+    var query = `SELECT C.emp_id, C.first_name, C.last_name, C.email 
                 FROM ${companyCode}.ep_empDetails C where C.emp_id in 
                 (SELECT DISTINCT manager_id as emp_id from ${companyCode}.ep_empManager where emp_id = $1)`;
 
