@@ -272,7 +272,7 @@ const updateLeaveBalance = (empid, typeid, days, companyCode) => {
             return res({ result: 1 })
           }
         })
-      } else{
+      } else {
         var insertQuery = `INSERT into ${companyCode}.ep_leaveBalance `
       }
     })
@@ -438,58 +438,105 @@ const getDayInfo = (request, response) => {
 const getOverAPeriodStatus = (request, response) => {
   var { companyCode, empid, startDate, endDate } = request.body
 
-  var query = `select startdate, enddate, category, type, time FROM
-                (select to_char(occur_date, 'DD-MM-YYYY') as startDate, to_char(occur_date, 'DD-MM-YYYY') as endDate, 'Holiday' as category, title as type, 'Full Day' as time from ${companyCode}.ep_holidayList 
-                where to_date(to_char(occur_date, 'YYYYMMDD'), 'YYYYMMDD') in
-                (SELECT date_trunc('day', dd):: date
-                FROM generate_series
-                        ( '${startDate}'::timestamp 
-                        , '${endDate}'::timestamp
-                        , '1 day'::interval) dd
-                        )
-                and type = 'Mandatory'
-                
-                UNION
-                
-                select to_char(GREATEST(startdate, '${startDate}'::timestamp),'DD-MM-YYYY') as startdate, to_char(LEAST(enddate, '${endDate}'::timestamp), 'DD-MM-YYYY') as endDate, 
-                'Leave' as category, b.name as type, text(DATE_PART('day',enddate-startdate)) || ' day(s)' as time 
-                from ${companyCode}.ep_leaveRequests a, ${companyCode}.ep_leaveTypes b
-                where emp_id = '${empid}'
-                and a.type = b.type_id
-                and status = 1
-                and to_date(to_char(startdate, 'YYYYMMDD'), 'YYYYMMDD') in
-                (SELECT date_trunc('day', dd):: date
-                FROM generate_series('${startDate}'::timestamp , '${endDate}'::timestamp, '1 day'::interval) dd)
-                                          
-                UNION
-                  
-                select to_char(tseries.dateObj, 'DD-MM-YYYY') as startDate, to_char(tseries.dateObj, 'DD-MM-YYYY') as enddate, 'Working' as category, 'IN OFFICE' as type, text((select sum(b.time - a.time) from
-                (select time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKIN'
-                and to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = tseries.dateObj and emp_id = '${empid}' order by time) a,
-                (select time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKOUT'
-                and to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = tseries.dateObj and emp_id = '${empid}' order by time) b
-                where a.index = b.index
-                and a.time < b.time
-                group by to_date(to_char(a.time, 'YYYYMMDD'), 'YYYYMMDD'))) || ' hours' as time
-                FROM (SELECT date_trunc('day', dd):: date as dateObj
-                FROM generate_series
-                        ( '${startDate}'::timestamp 
-                        , '${endDate}'::timestamp
-                        , '1 day'::interval) dd
-                        ) tseries) MASTER
-                ORDER BY to_date(startdate, 'DD-MM-YYYY')`
+  var empids = [empid];
+
+  // var query = `select startdate, enddate, category, type, time FROM
+  //               (select to_char(occur_date, 'DD-MM-YYYY') as startDate, to_char(occur_date, 'DD-MM-YYYY') as endDate, 'Holiday' as category, title as type, 'Full Day' as time from ${companyCode}.ep_holidayList 
+  //               where to_date(to_char(occur_date, 'YYYYMMDD'), 'YYYYMMDD') in
+  //               (SELECT date_trunc('day', dd):: date
+  //               FROM generate_series
+  //                       ( '${startDate}'::timestamp 
+  //                       , '${endDate}'::timestamp
+  //                       , '1 day'::interval) dd
+  //                       )
+  //               and type = 'Mandatory'
+
+  //               UNION
+
+  //               select to_char(GREATEST(startdate, '${startDate}'::timestamp),'DD-MM-YYYY') as startdate, to_char(LEAST(enddate, '${endDate}'::timestamp), 'DD-MM-YYYY') as endDate, 
+  //               'Leave' as category, b.name as type, text(DATE_PART('day',enddate-startdate)) || ' day(s)' as time 
+  //               from ${companyCode}.ep_leaveRequests a, ${companyCode}.ep_leaveTypes b
+  //               where emp_id = '${empid}'
+  //               and a.type = b.type_id
+  //               and status = 1
+  //               and to_date(to_char(startdate, 'YYYYMMDD'), 'YYYYMMDD') in
+  //               (SELECT date_trunc('day', dd):: date
+  //               FROM generate_series('${startDate}'::timestamp , '${endDate}'::timestamp, '1 day'::interval) dd)
+
+  //               UNION
+
+  //               select to_char(tseries.dateObj, 'DD-MM-YYYY') as startDate, to_char(tseries.dateObj, 'DD-MM-YYYY') as enddate, 'Working' as category, 'IN OFFICE' as type, text((select sum(b.time - a.time) from
+  //               (select time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKIN'
+  //               and to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = tseries.dateObj and emp_id = '${empid}' order by time) a,
+  //               (select time, row_number() over (order by time) as index from ${companyCode}.ep_entryLogs where action = 'EMP_CHECKOUT'
+  //               and to_date(to_char(time, 'YYYYMMDD'), 'YYYYMMDD') = tseries.dateObj and emp_id = '${empid}' order by time) b
+  //               where a.index = b.index
+  //               and a.time < b.time
+  //               group by to_date(to_char(a.time, 'YYYYMMDD'), 'YYYYMMDD'))) || ' hours' as time
+  //               FROM (SELECT date_trunc('day', dd):: date as dateObj
+  //               FROM generate_series
+  //                       ( '${startDate}'::timestamp 
+  //                       , '${endDate}'::timestamp
+  //                       , '1 day'::interval) dd
+  //                       ) tseries) MASTER
+  //               ORDER BY to_date(startdate, 'DD-MM-YYYY')`
 
 
 
 
-  pool.query(query, (error, results) => {
-    if (error) {
-      console.log(error);
-      response.sendStatus(500);
-    } else {
-      response.json(results.rows)
+  // pool.query(query, (error, results) => {
+  //   if (error) {
+  //     console.log(error);
+  //     response.sendStatus(500);
+  //   } else {
+  //     response.json(results.rows)
+  //   }
+  // })
+
+  getWorkingTimeForEachDay(startDate, endDate, companyCode, empids)
+    .then(result => {
+
+      console.log(result);
+
+      if (result.success === true) {
+        var dataObj = result.data;
+        var jsonToReturn = [];
+
+        var dataRow = dataObj.find(obj => {
+          return obj.empid === empid.substring(7)
+        });
+
+        if (typeof dataRow !== "undefined") {
+          for (var entry of dataRow.data) {
+            var category = entry.hours == 0 ? "-" : "Working";
+            var type = entry.hours == 0 ? "-" : "In Office";
+            var obj = {
+              startDate: entry.date,
+              endDate: entry.date,
+              category: category,
+              type: type,
+              time: `${entry.hours} hours`
+            }
+            jsonToReturn.push(obj);
+          }
+        } else {
+          var obj = {
+            startDate: startDate,
+            endDate: endDate,
+            category: "-",
+            type: "-",
+            time: "No data found"
+          }
+          jsonToReturn.push(obj);
+        }
+
+        response.json(jsonToReturn);
+      }
     }
-  })
+      , err => {
+        console.log(err)
+        response.sendStatus(500)
+      })
 }
 
 const getManagerReportData = (request, response) => {
