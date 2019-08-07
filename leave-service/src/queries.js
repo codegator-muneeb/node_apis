@@ -259,24 +259,25 @@ const getLegend = (request, response) => {
 const updateLeaveBalance = (empid, typeid, days, companyCode) => {
   return new Promise((res, rej) => {
 
-    var selectQuery = `SELECT * from ${companyCode}.ep_leaveBalance where emp_id = $1 and type_id = $2`
+    // var selectQuery = `SELECT * from ${companyCode}.ep_leaveBalance where emp_id = $1 and type_id = $2`
 
-    pool.query(selectQuery, [empid, typeid], (err, selectResults) => {
-      if (selectResults.rowCount !== 0) {
-        var query = `UPDATE ${companyCode}.ep_leaveBalance SET balance = balance  + ${days}
-                where emp_id = $1 and type_id = $2`;
-        pool.query(query, [empid, typeid], (error, results) => {
-          if (error) {
-            return rej({ result: 0 });
-          } else {
-            return res({ result: 1 })
-          }
-        })
-      } else {
-        var insertQuery = `INSERT into ${companyCode}.ep_leaveBalance `
-      }
-    })
+    // pool.query(selectQuery, [empid, typeid], (err, selectResults) => {
+    //   if (selectResults.rowCount !== 0) {
+    //     var query = `UPDATE ${companyCode}.ep_leaveBalance SET balance = balance  + ${days}
+    //             where emp_id = $1 and type_id = $2`;
+    //     pool.query(query, [empid, typeid], (error, results) => {
+    //       if (error) {
+    //         return rej({ result: 0 });
+    //       } else {
+    //         return res({ result: 1 })
+    //       }
+    //     })
+    //   } else {
+    //     var insertQuery = `INSERT into ${companyCode}.ep_leaveBalance `
+    //   }
+    // })
 
+    return res({ result: 1 })
   })
 
 }
