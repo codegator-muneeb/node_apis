@@ -60,8 +60,8 @@ const getHolidayList = (request, response) => {
 
 const getLeaveOverview = (request, response) => {
   const { companyCode, empid } = request.body
-  var query = `SELECT a.id as id, a.type as typeid, b.name, to_char(startDate, 'DD/MM/YYYY HH24:MI') as startDate, (Select email from ${companyCode}.ep_empDetails z where z.emp_id = a.manager_id) as email, to_char(endDate, 'DD/MM/YYYY HH24:MI') as endDate, c.title as status, (EXTRACT(EPOCH FROM endDate - startDate)/3600)::Integer 
-              as duration FROM ${companyCode}.ep_leaveRequests a, ${companyCode}.ep_leaveTypes b, ep_leaveStatus c
+  var query = `SELECT a.id as id, a.type as typeid, b.name, to_char(startDate, 'DD/MM/YYYY HH24:MI') as startDate, (select string_agg(email, ';') from c000101.ep_empDetails z where z.emp_id in (select manager_id from ${companyCode}.ep_leaveRequestManager lrm where lrm.id = a.id)) as email, to_char(endDate, 'DD/MM/YYYY HH24:MI') as endDate, c.title as status, (EXTRACT(EPOCH FROM endDate - startDate)/3600)::Integer 
+              as duration, a.modified_by FROM ${companyCode}.ep_leaveRequests a, ${companyCode}.ep_leaveTypes b, ep_leaveStatus c
               where a.type = b.type_id
               AND a.status = c.status
               AND emp_id = $1 order by created_on desc`;
@@ -84,10 +84,11 @@ const getLeaveRequests = (request, response) => {
 
   var query = `SELECT a.id, a.emp_id, concat_ws(' ', b.first_name, b.last_name) as fullname, b.email as email, a.type as typeid, c.name as type, to_char(a.startDate, 'DD/MM/YYYY HH24:MI') as startdate, 
               to_char(a.endDate, 'DD/MM/YYYY HH24:MI') as enddate, d.title as reqstatus, (EXTRACT(EPOCH FROM endDate - startDate)/3600)::Integer as duration 
-              FROM ${companyCode}.ep_leaveRequests a, ${companyCode}.ep_empDetails b, ${companyCode}.ep_leaveTypes c, ep_leaveStatus d 
+              FROM ${companyCode}.ep_leaveRequests a, ${companyCode}.ep_empDetails b, ${companyCode}.ep_leaveTypes c, ep_leaveStatus d, ${companyCode}.ep_leaveRequestManager e 
               WHERE a.emp_id = b.emp_id
+              ANd a.id = e.id
               AND a.type = c.type_id
-              AND a.manager_id = $1
+              AND e.manager_id = $1
               AND a.status = $2
               AND a.status = d.status
               order by created_on desc`;
@@ -105,9 +106,9 @@ const getLeaveRequests = (request, response) => {
 }
 
 const approveRequest = (request, response) => {
-  const { companyCode, id, empid, type, days } = request.body;
+  const { companyCode, id, empid, type, days, managerid } = request.body;
 
-  var query = `UPDATE ${companyCode}.ep_leaveRequests SET status = 1 WHERE id = $1`;
+  var query = `UPDATE ${companyCode}.ep_leaveRequests SET status = 1, modified_by = '${managerid}' WHERE id = $1`;
 
   pool.query(query, [id], (error, results) => {
     if (error) {
@@ -133,9 +134,9 @@ const approveRequest = (request, response) => {
 }
 
 const rejectRequest = (request, response) => {
-  const { companyCode, id, empid, type, days } = request.body;
+  const { companyCode, id, empid, type, days, managerid } = request.body;
 
-  var query = `UPDATE ${companyCode}.ep_leaveRequests SET status = -1 WHERE id = $1`;
+  var query = `UPDATE ${companyCode}.ep_leaveRequests SET status = -1, modified_by = '${managerid}' WHERE id = $1`;
 
   getLeaveStatus(companyCode, id)
     .then(requestStatus => {
@@ -186,17 +187,36 @@ const rejectRequest = (request, response) => {
 /* dateFormat : yyyy-mm-dd hh:mm:ss
 */
 const submitRequest = (request, response) => {
-  const { companyCode, type, empid, startDate, endDate, managerid } = request.body;
+  const { companyCode, type, empid, startDate, endDate, managerids } = request.body;
 
-  var query = `INSERT INTO ${companyCode}.ep_leaveRequests (type, emp_id, startDate, endDate, manager_id)
-              VALUES ($1, $2, $3, $4, $5)`;
+  var query = `INSERT INTO ${companyCode}.ep_leaveRequests (type, emp_id, startDate, endDate)
+              VALUES ($1, $2, $3, $4) RETURNING id`;
 
-  pool.query(query, [type, empid, startDate, endDate, managerid], (error, results) => {
+  pool.query(query, [type, empid, startDate, endDate], (error, results) => {
     if (error) {
       console.log(error);
       response.sendStatus(500);
     } else {
-      response.sendStatus(200);
+      console.log(results);
+      var id = results.rows[0].id
+      
+
+      var managerList = "";
+      for (var managerid of managerids) {
+        managerList += `(${id}, '${managerid}'),`;
+      }
+      managerList = managerList.slice(0, -1)
+
+      var managerQuery = `INSERT INTO ${companyCode}.ep_leaveRequestManager (id, manager_id) VALUES${managerList}`;
+
+      pool.query(managerQuery, (managerError, magResults) => {
+        if(error){
+          console.log(managerError)
+          response.sendStatus(500);
+        } else {
+          response.sendStatus(200);
+        }
+      })
     }
   })
 
