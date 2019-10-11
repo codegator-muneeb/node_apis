@@ -747,32 +747,29 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
           for (var key of groupByData.keys()) {
             var recordSet = groupByData.get(key);
             var time = 0;
+            for (i = 0; i < recordSet.length - 1; i++) {
 
-            /*Comment out this section when you want to enable successive days time tracking*/
-            for (i = 0; i <= recordSet.length - 1; i++) {
+              // if (i === recordSet.length - 1 && recordSet[i].action === "EMP_CHECKIN") {
 
-            //   if (i === recordSet.length - 1 && recordSet[i].action === "EMP_CHECKIN") {
+              //   var time1 = new Date(recordSet[i].time);
+              //   var time2 = new Date(recordSet[i].time);
+              //   time2.setUTCHours(23); time2.setUTCMinutes(59); time2.setUTCSeconds(59);
+              //   var difference = (time2 - time1) / (1000 * 60 * 60);
+              //   time += difference;
+              //   console.log(`${time1} ${time2} ${difference} ${time}`);
+              // }
 
-            //     var time1 = new Date(recordSet[i].time);
-            //     var time2 = new Date(recordSet[i].time);
-            //     time2.setUTCHours(23); time2.setUTCMinutes(59); time2.setUTCSeconds(59);
-            //     var difference = (time2 - time1) / (1000 * 60 * 60);
-            //     time += difference;
-            //     console.log(`${time1} ${time2} ${difference} ${time}`);
-            //   }
+              // else if (i === 0 && recordSet[i].action === "EMP_CHECKOUT") {
 
-            //   else if (i === 0 && recordSet[i].action === "EMP_CHECKOUT") {
+              //   var time2 = new Date(recordSet[i].time);
+              //   var time1 = new Date(recordSet[i].time);
+              //   time1.setUTCHours(0); time1.setUTCMinutes(0); time1.setUTCSeconds(0);
+              //   var difference = (time2 - time1) / (1000 * 60 * 60);
+              //   time += difference;
+              //   console.log(`${time1} ${time2} ${difference} ${time}`)
+              // }
 
-            //     var time2 = new Date(recordSet[i].time);
-            //     var time1 = new Date(recordSet[i].time);
-            //     time1.setUTCHours(0); time1.setUTCMinutes(0); time1.setUTCSeconds(0);
-            //     var difference = (time2 - time1) / (1000 * 60 * 60);
-            //     time += difference;
-            //     console.log(`${time1} ${time2} ${difference} ${time}`)
-            //   }
-
-            //   else 
-
+              // else 
               if (recordSet[i].action === "EMP_CHECKIN" && recordSet[i + 1].action === "EMP_CHECKOUT") {
                 var time2 = new Date(recordSet[i + 1].time);
                 var time1 = new Date(recordSet[i].time);
