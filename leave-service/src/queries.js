@@ -749,7 +749,7 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
             var time = 0;
 
             /*Comment out this section when you want to enable successive days time tracking*/
-            // for (i = 0; i <= recordSet.length - 1; i++) {
+            for (i = 0; i <= recordSet.length - 1; i++) {
 
             //   if (i === recordSet.length - 1 && recordSet[i].action === "EMP_CHECKIN") {
 
@@ -772,7 +772,7 @@ const getWorkingTimeForEachDay = (startDate, endDate, companyCode, empids) => {
             //   }
 
             //   else 
-            
+
               if (recordSet[i].action === "EMP_CHECKIN" && recordSet[i + 1].action === "EMP_CHECKOUT") {
                 var time2 = new Date(recordSet[i + 1].time);
                 var time1 = new Date(recordSet[i].time);
