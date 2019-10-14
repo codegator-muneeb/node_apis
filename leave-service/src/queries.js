@@ -536,7 +536,7 @@ const getOverAPeriodStatus = (request, response) => {
               enddate: entry.date,
               category: category,
               type: type,
-              time: `${entry.hours} hours`
+              time: convertToHrsMinFormat(entry.hours) //`${entry.hours} hours`
             }
             jsonToReturn.push(obj);
           }
@@ -610,7 +610,7 @@ const getManagerReportData = (request, response) => {
                 }
               }
 
-              row.Total_Hours = totalHours.toString();
+              row.Total_Hours = convertToHrsMinFormat(totalHours);
             }
 
             response.json(namesObj);
@@ -845,6 +845,14 @@ const sendEmail = (request, response) => {
       message: "Email sent successfully"
     })
   });
+}
+
+function convertToHrsMinFormat(time){
+  var hour = Math.floor(time);
+  var min = Math.round((time - hour) * 60);
+
+  var strToReturn = `${hour} h ${min} min`;
+  return strToReturn;
 }
 
 module.exports = {
