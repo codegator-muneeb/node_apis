@@ -662,7 +662,12 @@ const getManagerComprehensiveReport = (request, response) => {
                 return obj.empid === row.empid
               });
               var data = typeof dataRow !== "undefined" ? dataRow.data : [];
-              console.log(data);
+              //console.log(data);
+
+              for(var timeEntry of data){
+                timeEntry.hours = convertToHrsMinFormat(Number(timeEntry.hours));
+              }
+
               row.data = data;
             }
 
