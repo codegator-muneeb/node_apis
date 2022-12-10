@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "body-parser": "^1.18.3",
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "flightplan": "^0.6.19",
     "pg": "^7.9.0"
   },
